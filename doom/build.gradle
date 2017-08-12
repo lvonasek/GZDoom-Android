@@ -11,25 +11,18 @@ android {
         targetSdkVersion 26
         versionCode 3
         versionName "0.2.1"
-    }
 
-    sourceSets.main {
-        jniLibs.srcDir 'src/main/libs'
-    }
-
-    tasks.whenTaskAdded { task ->
-        if (task.name.equals("compileDebugNdk")) {
-            task.enabled = false
+        ndk {
+            abiFilters 'armeabi-v7a'
         }
     }
 
-    tasks.whenTaskAdded { task ->
-        if (task.name.equals("compileReleaseNdk")) {
-            task.enabled = false
+    externalNativeBuild {
+        ndkBuild {
+            path 'src/main/jni/Android.mk'
         }
     }
 }
-
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])

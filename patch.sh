@@ -36,6 +36,3 @@ while read -r line; do
         rm $temp_file
     fi
 done <<< $patches
-
-
-NDK_PROJECT_PATH=doom/src/main ndk-build
