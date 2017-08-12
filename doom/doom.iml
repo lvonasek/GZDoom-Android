@@ -205,6 +205,5 @@
     <orderEntry type="library" exported="" name="support-fragment-26.0.1" level="project" />
     <orderEntry type="library" exported="" name="animated-vector-drawable-26.0.1" level="project" />
     <orderEntry type="module" module-name="touchcontrols" exported="" />
-    <orderEntry type="library" exported="" name="com.bda.controller" level="project" />
   </component>
 </module>
