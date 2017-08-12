@@ -247,11 +247,11 @@ public class LaunchFragmentGZdoom extends Fragment{
         DoomWad game =  games.get(pos);
 
         for (DoomWad g: games)
-            g.setSelected(false);
+            g.selected = false;
 
         selectedMod = game;
 
-        game.setSelected(true);
+        game.selected = true;
 
         gameArgsTextView.setText(game.getArgs());
 
@@ -284,10 +284,11 @@ public class LaunchFragmentGZdoom extends Fragment{
                             && !file.contentEquals("brightmaps.pk3")
                             )
                     {
-                        DoomWad game = new DoomWad(file);
+                        DoomWad game = new DoomWad(file, file);
                         game.setArgs("-iwad " + file);
 
                         games.add(game);
+                        game.setImage(DoomWad.getGameImage(file));
                     }
                 }
             }
@@ -334,7 +335,7 @@ public class LaunchFragmentGZdoom extends Fragment{
             ImageView iv = (ImageView)view.findViewById(R.id.imageview);
             DoomWad game = games.get(position);
 
-            if (game.getSelected())
+            if (game.selected)
                 view.setBackgroundResource(R.drawable.layout_sel_background);
             else
                 view.setBackgroundResource(0);
@@ -346,7 +347,7 @@ public class LaunchFragmentGZdoom extends Fragment{
             title.setText(game.getTitle());
 
             TextView file = (TextView)view.findViewById(R.id.file_textview);
-            file.setText(game.getFile());
+            file.setText("");
 
             return view;
         }
