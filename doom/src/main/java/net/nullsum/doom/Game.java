@@ -146,6 +146,7 @@ public class Game extends Activity implements Handler.Callback
 	@Override
 	protected void onPause() {
 		Log.i(LOG, "onPause" );
+		SDLLib.nativePause();
 		SDLLib.onPause();
 		mogaController.onPause();
 		super.onPause();
@@ -156,6 +157,7 @@ public class Game extends Activity implements Handler.Callback
 
 		Log.i(LOG, "onResume" );
 		SDLLib.onResume();
+		SDLLib.nativeResume();
 		mogaController.onResume();
 		super.onResume();
 		mGLSurfaceView.onResume();
@@ -266,9 +268,6 @@ public class Game extends Activity implements Handler.Callback
 
 		}
 
-		//// new Renderer interface
-		int notifiedflags;
-
 		public void onDrawFrame(GL10 gl) {
 
 			Log.d("Renderer", "onDrawFrame" );
@@ -289,7 +288,6 @@ public class Game extends Activity implements Handler.Callback
 				try {
 					Thread.sleep(200);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -314,23 +312,14 @@ public class Game extends Activity implements Handler.Callback
 				SDLLib.surfaceChanged(PixelFormat.RGBA_8888, surfaceWidth/resDiv, surfaceHeight/resDiv);
 				SDLinited = true;
 			}
-
-			//Display display = ((WindowManager) act.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-			//Point size = new Point();
-			//display.getSize(size);
 			controlInterp.setScreenSize(surfaceWidth,surfaceHeight);
-
-			//controlInterp.setScreenSize(width, height);
-
-
 		}
-	} // end of QuakeRenderer
+	}
 
 
 
 	@Override
 	public boolean handleMessage(Message msg) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 }

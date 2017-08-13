@@ -6,8 +6,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.AssetManager;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -17,30 +15,21 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
-import android.widget.Toast;
 
 import com.beloko.touchcontrols.ActionInput;
 import com.beloko.touchcontrols.ControlConfig;
 import com.beloko.touchcontrols.ControlConfig.Type;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 ;
@@ -65,72 +54,6 @@ public class Utils {
             pb.setProgress(pb.getProgress() + 1024);
         }
         out.close();
-    }
-
-    static public  void showDownloadDialog(final Activity act,String title,final String KEY,final String directory,final String file)
-    {
-        AlertDialog.Builder builder = new AlertDialog.Builder(act);
-        builder.setMessage(title)
-        .setCancelable(true)
-        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                // Download stuff here
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
-
-    public static String checkFiles(String basePath,String[] files_to_ceck)
-    {
-        File[] files = new File(basePath ).listFiles();
-        boolean ok=true;
-
-        String filesNotFound = "";
-
-        String[] expected;
-        expected = files_to_ceck;
-
-        if (files == null)
-            files = new File[0];
-
-        if (files!=null)
-        {
-            for (File f: files)
-            {
-                Log.d(LOG,"FILES: " + f.toString());
-
-            }
-
-            for (String e: expected)
-            {
-                boolean found=false;
-                for (File f: files)
-                {
-                    if (f.toString().toLowerCase().endsWith(e.toLowerCase()))
-                        found = true;
-                }
-                if (!found)
-                {
-                    Log.d(LOG,"Didnt find " + e);
-                    filesNotFound +=  e + "\n";
-                    ok = false;
-                }
-            }
-        }
-
-        if (filesNotFound.contentEquals(""))
-            return null;
-        else
-            return filesNotFound;
-
     }
 
     static public void copyPNGAssets(Context ctx,String dir) {
@@ -168,12 +91,6 @@ public class Utils {
         }
     }
 
-    public static void ExtractAsset(Context ctx,String file, String dest)
-    {
-        ExtractAsset.ctx = ctx;
-        new ExtractAsset().execute(file,dest);
-    }
-
     static private class ExtractAsset extends AsyncTask<String, Integer, Long> {
 
         private ProgressDialog progressBar;
@@ -187,25 +104,6 @@ public class Utils {
             progressBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             progressBar.setCancelable(false);
             progressBar.show();
-        }
-
-        int getTotalZipSize(String file)
-        {
-            int ret = 0;
-            try {
-                ZipFile zf = new ZipFile(file);
-                Enumeration e = zf.entries();
-                while (e.hasMoreElements()) {
-                    ZipEntry ze = (ZipEntry) e.nextElement();
-                    String name = ze.getName();
-
-                    ret += ze.getSize();
-                    long compressedSize = ze.getCompressedSize();
-                }
-            } catch (IOException ex) {
-                System.err.println(ex);
-            }
-            return ret;
         }
 
         protected Long doInBackground(String... info) {
@@ -341,73 +239,7 @@ public class Utils {
         v.startAnimation(a);
     }
 
-    public static void collapse(final View v) {
-        final int initialHeight = v.getMeasuredHeight();
-
-        Animation a = new Animation()
-        {
-            @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t) {
-                if(interpolatedTime == 1){
-                    v.setVisibility(View.GONE);
-                }else{
-                    v.getLayoutParams().height = initialHeight - (int)(initialHeight * interpolatedTime);
-                    v.requestLayout();
-                }
-            }
-
-            @Override
-            public boolean willChangeBounds() {
-                return true;
-            }
-        };
-
-        // 1dp/ms
-        a.setDuration((int)(initialHeight / v.getContext().getResources().getDisplayMetrics().density));
-        v.startAnimation(a);
-    }
-
-
     static final int BUFFER_SIZE = 1024;
-
-    static public String getLogCat() {
-        String[] logcatArgs = new String[] {"logcat", "-d", "-v", "time"};
-
-        Process logcatProc = null;
-        try {
-            logcatProc = Runtime.getRuntime().exec(logcatArgs);
-        }
-        catch (IOException e) {
-            return null;
-        }
-
-        BufferedReader reader = null;
-        String response = null;
-        try {
-            String separator = System.getProperty("line.separator");
-            StringBuilder sb = new StringBuilder();
-            reader = new BufferedReader(new InputStreamReader(logcatProc.getInputStream()), BUFFER_SIZE);
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-                sb.append(separator);
-            }
-            response = sb.toString();
-        }
-        catch (IOException e) {
-        }
-        finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                }
-                catch (IOException e) {}
-            }
-        }
-
-        return response;
-    }
-
 
     static public void copyAsset(Context ctx,String file,String destdir) {
         AssetManager assetManager = ctx.getAssets();
@@ -449,73 +281,6 @@ public class Utils {
         }
 
         return inSampleSize;
-    }
-
-    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-            int reqWidth, int reqHeight) {
-
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeResource(res, resId, options);
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeResource(res, resId, options);
-    }
-
-    public static void loadArgs(Context ctx,ArrayList<String> args)
-    {
-        File cacheDir = ctx.getFilesDir();
-
-        FileInputStream fis = null;
-        ObjectInputStream in = null;
-        try
-        {
-            fis = new FileInputStream(new File(cacheDir,"args_hist.dat"));
-            in = new ObjectInputStream(fis);
-            ArrayList<String> argsHistory = (ArrayList<String>)in.readObject();
-            args.clear();
-            args.addAll(argsHistory);
-            in.close();
-            return;
-        }
-        catch(IOException ex)
-        {
-
-        }
-        catch(ClassNotFoundException ex)
-        {
-
-        }
-        //failed load, load default
-        args.clear();
-    }
-
-
-    public static void saveArgs(Context ctx,ArrayList<String> args)
-    {
-        File cacheDir = ctx.getFilesDir();
-
-        if (!cacheDir.exists())
-            cacheDir.mkdirs();
-
-        FileOutputStream fos = null;
-        ObjectOutputStream out = null;
-        try
-        {
-            fos = new FileOutputStream(new File(cacheDir,"args_hist.dat"));
-            out = new ObjectOutputStream(fos);
-            out.writeObject(args);
-            out.close();
-        }
-        catch(IOException ex)
-        {
-            Toast.makeText(ctx,"Error saving args History list: " + ex.toString(), Toast.LENGTH_LONG).show();
-        }
     }
 
     public static void setImmersionMode(final Activity act)
