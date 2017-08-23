@@ -38,12 +38,14 @@ import com.beloko.touchcontrols.ShowKeyboard;
 import com.beloko.touchcontrols.TouchControlsEditing;
 import com.beloko.touchcontrols.TouchControlsSettings;
 import com.beloko.touchcontrols.TouchSettings;
+import com.lucidvr.ddctrl.AbstractActivity;
+import com.lucidvr.ddctrl.DaydreamController;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 
-public class Game extends Activity implements Handler.Callback
+public class Game extends AbstractActivity implements Handler.Callback
 {
 	String LOG = "Game";
 
@@ -54,10 +56,10 @@ public class Game extends Activity implements Handler.Callback
 
 	private String args;
 	private String gamePath;
-	private boolean setupLaunch; //True if the native setup program launched this
 
 	private GameView mGLSurfaceView = null;
 	private QuakeRenderer mRenderer = new QuakeRenderer();
+
 	Activity act;
 
 	int surfaceWidth=-1,surfaceHeight;
@@ -80,7 +82,6 @@ public class Game extends Activity implements Handler.Callback
 
 		args = getIntent().getStringExtra("args");
 		gamePath  = getIntent().getStringExtra("game_path");
-		setupLaunch = getIntent().getBooleanExtra("setup_launch", false);
 		resDiv = getIntent().getIntExtra("res_div", 1);
 		
 		mogaController = Controller.getInstance(this);
@@ -100,6 +101,24 @@ public class Game extends Activity implements Handler.Callback
 
 
 		start_game();   
+	}
+
+	@Override
+	protected void onAddressChanged(String address)
+	{
+	}
+
+	@Override
+	protected void onConnectionChanged(boolean on)
+	{
+		controlInterp.onKeyDown(KeyEvent.KEYCODE_BACK, null);
+		controlInterp.onKeyUp(KeyEvent.KEYCODE_BACK, null);
+	}
+
+	@Override
+	protected void onDataReceived()
+	{
+		VRController.update(DaydreamController.getStatus(), controlInterp);
 	}
 
 	@Override
