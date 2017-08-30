@@ -9,9 +9,12 @@ import com.lucidvr.sdk.DaydreamController;
 
 class VRController
 {
+  private static boolean initialized = false;
+  private static float pitch;
+  private static float yaw;
   private static long timestamp;
 
-  public static void update(SparseIntArray data, ControlInterpreter controlInterp)
+  public static void update(SparseIntArray data, float[] head, ControlInterpreter controlInterp)
   {
     //touchpad - walking
     int x = data.get(DaydreamController.SWP_X);
@@ -20,8 +23,25 @@ class VRController
       x = 0;
     if (Math.abs(y) < 25)
       y = 0;
-    NativeLib.analogYaw(0, -x * 0.00003f);
+    NativeLib.analogSide(x * 0.02f);
     NativeLib.analogFwd(-y * 0.02f);
+
+    //head rotation
+    if(!initialized)
+    {
+      initialized = true;
+      pitch = head[0];
+      yaw = head[1];
+    } else {
+      float gap = head[1] - yaw;
+      //TODO:better
+      if (gap > Math.PI)
+        gap = 0;
+      NativeLib.analogPitch(0, (head[0] - pitch) * 0.5f);
+      NativeLib.analogYaw(0, gap * 0.25f);
+      pitch = head[0];
+      yaw = head[1];
+    }
 
     //touchpad - menu
     if (data.get(DaydreamController.SWP_X) > 50)

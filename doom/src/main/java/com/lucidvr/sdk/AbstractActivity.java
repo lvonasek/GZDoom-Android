@@ -133,9 +133,6 @@ public abstract class AbstractActivity extends GvrActivity implements
     if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action) ||
             NfcAdapter.ACTION_TECH_DISCOVERED.equals(action) ||
             NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
-      Intent newIntent = new Intent(this, AbstractActivity.class);
-      newIntent.putExtra("NFC_INTENT", intent);
-      startActivity(newIntent);
     }
   }
 
@@ -271,11 +268,6 @@ public abstract class AbstractActivity extends GvrActivity implements
   public synchronized void onNewFrame(HeadTransform headTransform)
   {
     mHead = headTransform;
-    float[] angles = new float[3];
-    mHead.getEulerAngles(angles, 0);
-    for (int i = 0; i < 3; i++)
-      angles[i] = (float) (angles[i] * 180.0f / Math.PI);
-    Log.d("XXX", (int)angles[0] + ", " + (int)angles[1] + ", " + (int)angles[2]);
   }
 
   @Override

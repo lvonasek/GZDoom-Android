@@ -115,7 +115,9 @@ public class Game extends AbstractActivity implements Handler.Callback
 	@Override
 	protected void onDataReceived()
 	{
-		VRController.update(DaydreamController.getStatus(), controlInterp);
+		float[] angles = new float[3];
+		getTransform().getEulerAngles(angles, 0);
+		VRController.update(DaydreamController.getStatus(), angles, controlInterp);
 	}
 
 	@Override
