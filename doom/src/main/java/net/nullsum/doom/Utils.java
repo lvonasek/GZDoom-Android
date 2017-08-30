@@ -243,6 +243,7 @@ public class Utils {
 
     static public void copyAsset(Context ctx,String file,String destdir) {
         AssetManager assetManager = ctx.getAssets();
+        new File(destdir).mkdirs();
 
         InputStream in = null;
         OutputStream out = null;

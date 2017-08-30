@@ -4,7 +4,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.beloko.libsdl.SDLLib;
-import net.nullsum.doom.MyGLSurfaceView;
 import com.beloko.touchcontrols.ControlInterface;
 
 public class NativeLib implements ControlInterface {

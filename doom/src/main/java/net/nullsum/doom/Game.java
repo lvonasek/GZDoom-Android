@@ -66,8 +66,6 @@ public class Game extends AbstractActivity implements Handler.Callback
 
 	private Handler handlerUI;
 
-	int resDiv = 1;
-
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -82,7 +80,6 @@ public class Game extends AbstractActivity implements Handler.Callback
 
 		args = getIntent().getStringExtra("args");
 		gamePath  = getIntent().getStringExtra("game_path");
-		resDiv = getIntent().getIntExtra("res_div", 1);
 		
 		mogaController = Controller.getInstance(this);
 		MogaHack.init(mogaController, this);
@@ -153,7 +150,7 @@ public class Game extends AbstractActivity implements Handler.Callback
 
 		mGLSurfaceView.setRenderer(mRenderer);
 
-		// This will keep the screen on, while your view is visible. 
+		// This will keep the screen on, while your view is visible.
 		mGLSurfaceView.setKeepScreenOn(true);
 
 		setContentView(mGLSurfaceView);
@@ -272,7 +269,7 @@ public class Game extends AbstractActivity implements Handler.Callback
 
 			//args = "-width 1280 -height 736 +set vid_renderer 1 -iwad tnt.wad -file brutal19.pk3 +set fluid_patchset /sdcard/WeedsGM3.sf2";
 			//args = "+set vid_renderer 1 ";
-			String gzdoom_args = "-width " + surfaceWidth/resDiv + " -height " + surfaceHeight/resDiv + " +set vid_renderer 1 ";
+			String gzdoom_args = "-width " + surfaceWidth + " -height " + surfaceHeight + " +set vid_renderer 1 ";
 			String[] args_array = Utils.creatArgs(args + gzdoom_args);
 
 			int audioSameple = AudioTrack.getNativeOutputSampleRate(AudioTrack.MODE_STREAM);
@@ -295,13 +292,13 @@ public class Game extends AbstractActivity implements Handler.Callback
 				handlerUI.post(new Runnable() {				
 					@Override
 					public void run() {
-						mGLSurfaceView.getHolder().setFixedSize( surfaceWidth/resDiv, surfaceHeight/resDiv);	
+						mGLSurfaceView.getHolder().setFixedSize( surfaceWidth, surfaceHeight);
 						divDone = true;
 					}
 				});
 
 			if (divDone)
-				init( surfaceWidth/resDiv, surfaceHeight/resDiv);
+				init( surfaceWidth, surfaceHeight);
 			else
 			{
 				try {
@@ -310,7 +307,6 @@ public class Game extends AbstractActivity implements Handler.Callback
 					e.printStackTrace();
 				}
 			}
-			
 			Log.d("Renderer", "onDrawFrame END" );
 
 		}
@@ -328,7 +324,7 @@ public class Game extends AbstractActivity implements Handler.Callback
 			if (!SDLinited)
 			{
 				SDLLib.nativeInit(false);
-				SDLLib.surfaceChanged(PixelFormat.RGBA_8888, surfaceWidth/resDiv, surfaceHeight/resDiv);
+				SDLLib.surfaceChanged(PixelFormat.RGBA_8888, surfaceWidth, surfaceHeight);
 				SDLinited = true;
 			}
 			controlInterp.setScreenSize(surfaceWidth,surfaceHeight);

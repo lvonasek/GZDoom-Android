@@ -14,10 +14,14 @@ class VRController
   public static void update(SparseIntArray data, ControlInterpreter controlInterp)
   {
     //touchpad - walking
-    NativeLib.doAction(data.get(DaydreamController.SWP_X) > 50 ? 1 : 0, ControlConfig.PORT_ACT_MOVE_RIGHT);
-    NativeLib.doAction(data.get(DaydreamController.SWP_X) < -50 ? 1 : 0, ControlConfig.PORT_ACT_MOVE_LEFT);
-    NativeLib.doAction(data.get(DaydreamController.SWP_Y) > 50 ? 1 : 0, ControlConfig.PORT_ACT_BACK);
-    NativeLib.doAction(data.get(DaydreamController.SWP_Y) < -50 ? 1 : 0, ControlConfig.PORT_ACT_FWD);
+    int x = data.get(DaydreamController.SWP_X);
+    int y = data.get(DaydreamController.SWP_Y);
+    if (Math.abs(x) < 25)
+      x = 0;
+    if (Math.abs(y) < 25)
+      y = 0;
+    NativeLib.analogYaw(0, -x * 0.00003f);
+    NativeLib.analogFwd(-y * 0.02f);
 
     //touchpad - menu
     if (data.get(DaydreamController.SWP_X) > 50)
@@ -65,7 +69,7 @@ class VRController
         controlInterp.onKeyDown(code, null);
         try
         {
-          Thread.sleep(25);
+          Thread.sleep(50);
         } catch (InterruptedException e)
         {
           e.printStackTrace();
