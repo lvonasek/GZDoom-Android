@@ -38,6 +38,6 @@
             android:screenOrientation="sensorLandscape"
             >
         </activity>
-        <service android:name="com.lucidvr.ddctrl.BluetoothLeService" android:enabled="true"/>
+        <service android:name="com.lucidvr.sdk.BluetoothLeService" android:enabled="true"/>
     </application>
 </manifest>

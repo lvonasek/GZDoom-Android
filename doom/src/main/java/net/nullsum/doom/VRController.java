@@ -5,7 +5,7 @@ import android.view.KeyEvent;
 
 import com.beloko.touchcontrols.ControlConfig;
 import com.beloko.touchcontrols.ControlInterpreter;
-import com.lucidvr.ddctrl.DaydreamController;
+import com.lucidvr.sdk.DaydreamController;
 
 class VRController
 {

@@ -1,4 +1,4 @@
-package com.lucidvr.ddctrl;
+package com.lucidvr.sdk;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -16,16 +16,32 @@ import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import com.google.vr.sdk.base.Eye;
+import com.google.vr.sdk.base.GvrActivity;
+import com.google.vr.sdk.base.GvrView;
+import com.google.vr.sdk.base.HeadTransform;
+import com.google.vr.sdk.base.Viewport;
 
 import net.nullsum.doom.R;
 
-public abstract class AbstractActivity extends Activity implements BluetoothAdapter.LeScanCallback
+import javax.microedition.khronos.egl.EGLConfig;
+
+public abstract class AbstractActivity extends GvrActivity implements
+        BluetoothAdapter.LeScanCallback,
+        GvrView.StereoRenderer
 {
   private BluetoothAdapter mBluetoothAdapter;
   private BluetoothLeService mBluetooth;
   private String mDeviceAddress;
   private boolean mScanning;
+  private GvrView mGvrView;
+  private HeadTransform mHead;
 
   private static final int REQUEST_ENABLE_BT = 1;
 
@@ -57,6 +73,35 @@ public abstract class AbstractActivity extends Activity implements BluetoothAdap
       Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
       finish();
     }
+
+    // Transformation
+    mGvrView = new com.google.vr.sdk.base.GvrView(this);
+    mGvrView.setEGLConfigChooser(8, 8, 8, 8, 16, 8);
+    mGvrView.setRenderer(this);
+    mGvrView.setTransitionViewEnabled(true);
+    mGvrView.setVisibility(View.INVISIBLE);
+    setGvrView(mGvrView);
+  }
+
+  @Override
+  public void setContentView(View view)
+  {
+    RelativeLayout layout = new RelativeLayout(this);
+    layout.addView(view);
+    layout.addView(mGvrView);
+    super.setContentView(layout);
+  }
+
+  @Override
+  public void setContentView(int layoutResID)
+  {
+    Log.e("AbstractActivity", "Unsupported, use setContentView(View)");
+  }
+
+  @Override
+  public void setContentView(View view, ViewGroup.LayoutParams params)
+  {
+    Log.e("AbstractActivity", "Unsupported, use setContentView(View)");
   }
 
   @Override
@@ -211,5 +256,36 @@ public abstract class AbstractActivity extends Activity implements BluetoothAdap
         }
       }
     });
+  }
+
+  @Override
+  public void onRendererShutdown() {}
+
+  @Override
+  public void onSurfaceChanged(int width, int height) {}
+
+  @Override
+  public void onSurfaceCreated(EGLConfig config) {}
+
+  @Override
+  public synchronized void onNewFrame(HeadTransform headTransform)
+  {
+    mHead = headTransform;
+    float[] angles = new float[3];
+    mHead.getEulerAngles(angles, 0);
+    for (int i = 0; i < 3; i++)
+      angles[i] = (float) (angles[i] * 180.0f / Math.PI);
+    Log.d("XXX", (int)angles[0] + ", " + (int)angles[1] + ", " + (int)angles[2]);
+  }
+
+  @Override
+  public void onDrawEye(Eye eye) {}
+
+  @Override
+  public void onFinishFrame(Viewport viewport) {}
+
+  public synchronized HeadTransform getTransform()
+  {
+    return mHead;
   }
 }

@@ -1,4 +1,4 @@
-package com.lucidvr.ddctrl;
+package com.lucidvr.sdk;
 
 import android.util.SparseIntArray;
 

@@ -1,4 +1,4 @@
-package com.lucidvr.ddctrl;
+package com.lucidvr.sdk;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;

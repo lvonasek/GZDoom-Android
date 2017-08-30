@@ -38,8 +38,8 @@ import com.beloko.touchcontrols.ShowKeyboard;
 import com.beloko.touchcontrols.TouchControlsEditing;
 import com.beloko.touchcontrols.TouchControlsSettings;
 import com.beloko.touchcontrols.TouchSettings;
-import com.lucidvr.ddctrl.AbstractActivity;
-import com.lucidvr.ddctrl.DaydreamController;
+import com.lucidvr.sdk.AbstractActivity;
+import com.lucidvr.sdk.DaydreamController;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;

@@ -25,4 +25,5 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(path: ':touchcontrols')
+    compile 'com.google.vr:sdk-base:1.80.0'
 }
