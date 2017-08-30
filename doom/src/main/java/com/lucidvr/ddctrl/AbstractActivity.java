@@ -1,6 +1,7 @@
 package com.lucidvr.ddctrl;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -12,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Toast;
@@ -61,6 +63,7 @@ public abstract class AbstractActivity extends Activity implements BluetoothAdap
   protected void onResume()
   {
     super.onResume();
+    //BT
     final IntentFilter intentFilter = new IntentFilter();
     intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
     intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
@@ -69,12 +72,26 @@ public abstract class AbstractActivity extends Activity implements BluetoothAdap
     registerReceiver(mGattUpdateReceiver, intentFilter);
     if (mDeviceAddress != null)
       mBluetooth.connect(mDeviceAddress);
-
-    // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
-    // fire an intent to display a dialog asking the user to grant permission to enable it.
     if (!mBluetoothAdapter.isEnabled())
       startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BT);
     scanLeDevice(true);
+    //NFC
+    NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
+    PendingIntent pendingIntent = PendingIntent.getActivity(
+            this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+    adapter.enableForegroundDispatch(this, pendingIntent, null, null);
+  }
+
+  @Override
+  public void onNewIntent(Intent intent) {
+    String action = intent.getAction();
+    if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action) ||
+            NfcAdapter.ACTION_TECH_DISCOVERED.equals(action) ||
+            NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
+      Intent newIntent = new Intent(this, AbstractActivity.class);
+      newIntent.putExtra("NFC_INTENT", intent);
+      startActivity(newIntent);
+    }
   }
 
   @Override
@@ -101,10 +118,14 @@ public abstract class AbstractActivity extends Activity implements BluetoothAdap
   protected void onPause()
   {
     super.onPause();
+    //BT
     scanLeDevice(false);
     unregisterReceiver(mGattUpdateReceiver);
     mDeviceAddress = null;
     onAddressChanged("");
+    //NFC
+    NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
+    adapter.disableForegroundDispatch(this);
   }
 
   private void scanLeDevice(final boolean enable)
