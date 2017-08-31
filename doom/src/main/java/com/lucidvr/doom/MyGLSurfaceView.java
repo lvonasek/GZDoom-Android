@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.nullsum.doom;
+package com.lucidvr.doom;
 
 import java.io.Writer;
 import java.lang.ref.WeakReference;

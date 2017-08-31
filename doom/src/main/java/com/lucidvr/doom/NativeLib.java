@@ -1,4 +1,4 @@
-package net.nullsum.doom;
+package com.lucidvr.doom;
 
 import android.util.Log;
 import android.view.KeyEvent;
@@ -316,7 +316,7 @@ public class NativeLib implements ControlInterface {
 		return 0;
 	} 
 
-	public static MyGLSurfaceView gv;
+	static MyGLSurfaceView gv;
 
 
 	static void swapBuffers()

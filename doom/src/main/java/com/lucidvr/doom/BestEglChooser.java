@@ -1,4 +1,4 @@
-package net.nullsum.doom;
+package com.lucidvr.doom;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView.EGLConfigChooser;
@@ -8,12 +8,12 @@ import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLDisplay;
 
-public class BestEglChooser implements EGLConfigChooser {
+class BestEglChooser implements EGLConfigChooser {
 	String LOG = "BestEglChooser";
 
 	Context ctx;
 
-	public BestEglChooser(Context ctx)
+	BestEglChooser(Context ctx)
 	{
 		this.ctx = ctx;
 	}
@@ -90,18 +90,9 @@ public class BestEglChooser implements EGLConfigChooser {
 			eglConfigsString += n + ": " +  printConfig(egl,display,configs[n]) + ",";
 		}
 		Log.i(LOG,eglConfigsString);
-		AppSettings.setStringOption(ctx, "egl_configs", eglConfigsString);
 
-			
-		int selected = 0;
-		
-		int override = AppSettings.getIntOption(ctx, "egl_config_selected", 0);
-		if (override < configs.length)
-		{
-			selected = override;
-		}
-			
 		// best choice : select first config
+    int selected = 0;
 		Log.i( LOG, "selected EGL config[" + selected + "]: " + printConfig(egl,display,configs[selected]));
 
 		return configs[selected];

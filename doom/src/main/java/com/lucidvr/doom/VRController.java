@@ -1,4 +1,4 @@
-package net.nullsum.doom;
+package com.lucidvr.doom;
 
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
@@ -23,6 +23,10 @@ class VRController
       x = 0;
     if (Math.abs(y) < 25)
       y = 0;
+    if (Math.abs(x) > Math.abs(y))
+      y = 0;
+    else
+      x = 0;
     NativeLib.analogSide(x * 0.02f);
     NativeLib.analogFwd(-y * 0.02f);
 
@@ -34,8 +38,8 @@ class VRController
       yaw = head[1];
     } else {
       float gap = head[1] - yaw;
-      //TODO:better
-      if (gap > Math.PI)
+      //TODO:better handling angle between 359 and 0 degrees
+      if (Math.abs(gap) > Math.PI * 0.5)
         gap = 0;
       NativeLib.analogPitch(0, (head[0] - pitch) * 0.5f);
       NativeLib.analogYaw(0, gap * 0.25f);
@@ -57,12 +61,12 @@ class VRController
     if (data.get(DaydreamController.BTN_CLICK) > 0)
     {
       sendMenuEvent(controlInterp, KeyEvent.KEYCODE_ENTER);
-      sendKeyEvent(controlInterp, KeyEvent.KEYCODE_CTRL_LEFT);
+      sendKeyEvent(controlInterp, KeyEvent.KEYCODE_CTRL_LEFT, true);
     }
     if (data.get(DaydreamController.BTN_HOME) > 0)
       sendMenuEvent(controlInterp, KeyEvent.KEYCODE_BACK);
     if (data.get(DaydreamController.BTN_APP) > 0)
-      sendKeyEvent(controlInterp, KeyEvent.KEYCODE_SPACE);
+      sendKeyEvent(controlInterp, KeyEvent.KEYCODE_SPACE, false);
     if (data.get(DaydreamController.BTN_VOL_UP) > 0)
       sendActionEvent(ControlConfig.PORT_ACT_NEXT_WEP);
     if (data.get(DaydreamController.BTN_VOL_DOWN) > 0)
@@ -79,7 +83,7 @@ class VRController
     }
   }
 
-  private static void sendKeyEvent(final ControlInterpreter controlInterp, final int code)
+  private static void sendKeyEvent(final ControlInterpreter controlInterp, final int code, final boolean fire)
   {
     new Thread(new Runnable()
     {
@@ -89,7 +93,7 @@ class VRController
         controlInterp.onKeyDown(code, null);
         try
         {
-          Thread.sleep(50);
+          Thread.sleep(fire ? 50 : 200);
         } catch (InterruptedException e)
         {
           e.printStackTrace();

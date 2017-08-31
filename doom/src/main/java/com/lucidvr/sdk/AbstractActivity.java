@@ -1,5 +1,6 @@
 package com.lucidvr.sdk;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
@@ -14,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -27,8 +29,7 @@ import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
 import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.base.Viewport;
-
-import net.nullsum.doom.R;
+import com.lucidvr.doom.R;
 
 import javax.microedition.khronos.egl.EGLConfig;
 
@@ -43,11 +44,13 @@ public abstract class AbstractActivity extends GvrActivity implements
   private GvrView mGvrView;
   private HeadTransform mHead;
 
+  private static final int PERMISSIONS_CODE = 1987;
   private static final int REQUEST_ENABLE_BT = 1;
 
   protected abstract void onAddressChanged(String address);
   protected abstract void onConnectionChanged(boolean on);
   protected abstract void onDataReceived();
+  protected abstract void onInitFinished();
 
   @Override
   public void onCreate(Bundle savedInstanceState)
@@ -105,29 +108,6 @@ public abstract class AbstractActivity extends GvrActivity implements
   }
 
   @Override
-  protected void onResume()
-  {
-    super.onResume();
-    //BT
-    final IntentFilter intentFilter = new IntentFilter();
-    intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
-    intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
-    intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
-    intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
-    registerReceiver(mGattUpdateReceiver, intentFilter);
-    if (mDeviceAddress != null)
-      mBluetooth.connect(mDeviceAddress);
-    if (!mBluetoothAdapter.isEnabled())
-      startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BT);
-    scanLeDevice(true);
-    //NFC
-    NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
-    PendingIntent pendingIntent = PendingIntent.getActivity(
-            this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-    adapter.enableForegroundDispatch(this, pendingIntent, null, null);
-  }
-
-  @Override
   public void onNewIntent(Intent intent) {
     String action = intent.getAction();
     if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action) ||
@@ -157,17 +137,30 @@ public abstract class AbstractActivity extends GvrActivity implements
   }
 
   @Override
+  protected void onResume()
+  {
+    super.onResume();
+    if (!mBluetoothAdapter.isEnabled())
+      startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BT);
+    else
+      setupPermissions();
+  }
+
+  @Override
   protected void onPause()
   {
     super.onPause();
-    //BT
-    scanLeDevice(false);
-    unregisterReceiver(mGattUpdateReceiver);
-    mDeviceAddress = null;
-    onAddressChanged("");
-    //NFC
-    NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
-    adapter.disableForegroundDispatch(this);
+    try {
+      //BT
+      scanLeDevice(false);
+      unregisterReceiver(mGattUpdateReceiver);
+      mDeviceAddress = null;
+      onAddressChanged("");
+      //NFC
+      NfcAdapter.getDefaultAdapter(this).disableForegroundDispatch(this);
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private void scanLeDevice(final boolean enable)
@@ -279,5 +272,72 @@ public abstract class AbstractActivity extends GvrActivity implements
   public synchronized HeadTransform getTransform()
   {
     return mHead;
+  }
+
+
+  protected void setupPermissions() {
+    String[] permissions = {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.NFC,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+    };
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      boolean ok = true;
+      for (String s : permissions)
+        if (checkSelfPermission(s) != PackageManager.PERMISSION_GRANTED)
+          ok = false;
+
+      if (!ok)
+        requestPermissions(permissions, PERMISSIONS_CODE);
+      else
+        onRequestPermissionsResult(PERMISSIONS_CODE, null, new int[]{PackageManager.PERMISSION_GRANTED});
+    } else
+      onRequestPermissionsResult(PERMISSIONS_CODE, null, new int[]{PackageManager.PERMISSION_GRANTED});
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
+  {
+    switch (requestCode)
+    {
+      case PERMISSIONS_CODE:
+      {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        {
+          //BT
+          final IntentFilter intentFilter = new IntentFilter();
+          intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+          intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+          intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+          intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+          registerReceiver(mGattUpdateReceiver, intentFilter);
+          if (mDeviceAddress != null)
+            mBluetooth.connect(mDeviceAddress);
+          scanLeDevice(true);
+          //NFC
+          try {
+            NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+            adapter.enableForegroundDispatch(this, pendingIntent, null, null);
+          } catch(Exception e) {
+            e.printStackTrace();
+          }
+          runOnUiThread(new Runnable()
+          {
+            @Override
+            public void run()
+            {
+              onInitFinished();
+            }
+          });
+        } else
+          finish();
+        break;
+      }
+    }
   }
 }
