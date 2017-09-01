@@ -29,7 +29,7 @@ import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
 import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.base.Viewport;
-import com.lucidvr.doom.R;
+import com.lucidvr.gzdoom.R;
 
 import javax.microedition.khronos.egl.EGLConfig;
 

@@ -1,4 +1,4 @@
-package com.lucidvr.doom;
+package com.lucidvr.gzdoom;
 
 import android.app.Activity;
 import android.content.Context;

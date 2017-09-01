@@ -1,4 +1,4 @@
-package com.lucidvr.doom;
+package com.lucidvr.gzdoom;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView.EGLConfigChooser;

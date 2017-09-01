@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.lucidvr.doom;
+package com.lucidvr.gzdoom;
 
 import java.io.Writer;
 import java.lang.ref.WeakReference;

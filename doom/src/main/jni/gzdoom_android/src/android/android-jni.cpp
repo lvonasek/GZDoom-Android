@@ -23,7 +23,7 @@ extern "C"
 #include "in_android.h"
 #include "SDL_keycode.h"
 
-#define JAVA_FUNC(x) Java_com_lucidvr_doom_NativeLib_##x
+#define JAVA_FUNC(x) Java_com_lucidvr_gzdoom_NativeLib_##x
 
 int android_screen_width;
 int android_screen_height;
@@ -147,7 +147,7 @@ void swapBuffers()
 {
 	if (NativeLibClass == 0)
 	{
-		NativeLibClass = env_->FindClass("com/lucidvr/doom/NativeLib");
+		NativeLibClass = env_->FindClass("com/lucidvr/gzdoom/NativeLib");
 		swapBuffersMethod = env_->GetStaticMethodID(NativeLibClass, "swapBuffers", "()V");
 	}
 	env_->CallStaticVoidMethod(NativeLibClass, swapBuffersMethod);

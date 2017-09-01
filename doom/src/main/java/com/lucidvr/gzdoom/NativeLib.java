@@ -1,4 +1,4 @@
-package com.lucidvr.doom;
+package com.lucidvr.gzdoom;
 
 import android.util.Log;
 import android.view.KeyEvent;
