@@ -20,7 +20,7 @@ extern "C" jint JNI_OnLoad(JavaVM* vm, void* reserved)
 }
 
 // Start up the SDL app
-extern "C" void Java_com_beloko_libsdl_SDLLib_nativeInit(JNIEnv* env, jclass cls, jobject obj,jboolean launch)
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_nativeInit(JNIEnv* env, jclass cls, jobject obj,jboolean launch)
 {
 	/* This interface could expand with ABI negotiation, calbacks, etc. */
 	SDL_Android_Init(env, cls);

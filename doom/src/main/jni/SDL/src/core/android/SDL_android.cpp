@@ -142,14 +142,14 @@ extern "C" void SDL_Android_Init(JNIEnv* env, jclass cls)
     __android_log_print(ANDROID_LOG_INFO, "SDL", "SDL_Android_Init() finished!");
 }
 
-extern "C" void Java_com_beloko_libsdl_SDLLib_nativeInit(JNIEnv* env, jclass cls, jobject obj,jboolean launch)
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_nativeInit(JNIEnv* env, jclass cls, jobject obj,jboolean launch)
 {
 	SDL_Android_Init(env,cls);
 }
 
 
 // Resize
-extern "C" void Java_com_beloko_libsdl_SDLLib_onNativeResize(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_onNativeResize(
                                     JNIEnv* env, jclass jcls,
                                     jint width, jint height, jint format)
 {
@@ -157,21 +157,21 @@ extern "C" void Java_com_beloko_libsdl_SDLLib_onNativeResize(
 }
 
 // Keydown
-extern "C" void Java_com_beloko_libsdl_SDLLib_onNativeKeyDown(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_onNativeKeyDown(
                                     JNIEnv* env, jclass jcls, jint keycode)
 {
     Android_OnKeyDown(keycode);
 }
 
 // Keyup
-extern "C" void Java_com_beloko_libsdl_SDLLib_onNativeKeyUp(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_onNativeKeyUp(
                                     JNIEnv* env, jclass jcls, jint keycode)
 {
     Android_OnKeyUp(keycode);
 }
 
 // Touch
-extern "C" void Java_com_beloko_libsdl_SDLLib_onNativeTouch(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_onNativeTouch(
                                     JNIEnv* env, jclass jcls,
                                     jint touch_device_id_in, jint pointer_finger_id_in,
                                     jint action, jfloat x, jfloat y, jfloat p)
@@ -180,7 +180,7 @@ extern "C" void Java_com_beloko_libsdl_SDLLib_onNativeTouch(
 }
 
 // Accelerometer
-extern "C" void Java_com_beloko_libsdl_SDLLib_onNativeAccel(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_onNativeAccel(
                                     JNIEnv* env, jclass jcls,
                                     jfloat x, jfloat y, jfloat z)
 {
@@ -191,7 +191,7 @@ extern "C" void Java_com_beloko_libsdl_SDLLib_onNativeAccel(
 }
 
 // Quit
-extern "C" void Java_com_beloko_libsdl_SDLLib_nativeQuit(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_nativeQuit(
                                     JNIEnv* env, jclass cls)
 {    
     // Inject a SDL_QUIT event
@@ -199,7 +199,7 @@ extern "C" void Java_com_beloko_libsdl_SDLLib_nativeQuit(
 }
 
 // Pause
-extern "C" void Java_com_beloko_libsdl_SDLLib_nativePause(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_nativePause(
                                     JNIEnv* env, jclass cls)
 {
     if (Android_Window) {
@@ -209,7 +209,7 @@ extern "C" void Java_com_beloko_libsdl_SDLLib_nativePause(
 }
 
 // Resume
-extern "C" void Java_com_beloko_libsdl_SDLLib_nativeResume(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_nativeResume(
                                     JNIEnv* env, jclass cls)
 {
     if (Android_Window) {
@@ -218,7 +218,7 @@ extern "C" void Java_com_beloko_libsdl_SDLLib_nativeResume(
     }
 }
 
-extern "C" void Java_com_beloko_libsdl_SDLLib_nativeRunAudioThread(
+extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_nativeRunAudioThread(
                                     JNIEnv* env, jclass cls)
 {
     /* This is the audio thread, with a different environment */

@@ -1,15 +1,9 @@
 package com.lucidvr.gzdoom;
 
-import android.app.Activity;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.beloko.libsdl.SDLLib;
 import com.lucidvr.sdk.AbstractActivity;
 import com.lucidvr.sdk.DaydreamController;
 
@@ -18,23 +12,16 @@ import java.io.File;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-
-public class Game extends AbstractActivity implements Handler.Callback
+public class Game extends AbstractActivity implements MyGLSurfaceView.Renderer
 {
-  String LOG = "Game";
-
   private String args;
   private String gamePath;
 
   private MyGLSurfaceView mGLSurfaceView = null;
-  private DoomRenderer mRenderer = new DoomRenderer();
   private boolean mInitialized = false;
-
-  Activity act;
-
-  int surfaceWidth = -1, surfaceHeight;
-
-  private Handler handlerUI;
+  private boolean divDone = false;
+  private boolean SDLinited = false;
+  private int surfaceWidth = -1, surfaceHeight;
 
   /**
    * Called when the activity is first created.
@@ -43,10 +30,6 @@ public class Game extends AbstractActivity implements Handler.Callback
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-
-    act = this;
-
-    handlerUI = new Handler(this);
 
     args = getIntent().getStringExtra("args");
     gamePath = getIntent().getStringExtra("game_path");
@@ -117,9 +100,7 @@ public class Game extends AbstractActivity implements Handler.Callback
 
     NativeLib.gv = mGLSurfaceView;
 
-    mGLSurfaceView.setEGLConfigChooser(new BestEglChooser(getApplicationContext()));
-
-    mGLSurfaceView.setRenderer(mRenderer);
+    mGLSurfaceView.setRenderer(this);
 
     // This will keep the screen on, while your view is visible.
     mGLSurfaceView.setKeepScreenOn(true);
@@ -133,19 +114,16 @@ public class Game extends AbstractActivity implements Handler.Callback
   @Override
   protected void onPause()
   {
-    Log.i(LOG, "onPause");
-    SDLLib.nativePause();
-    SDLLib.onPause();
+    SDLAudio.nativePause();
+    SDLAudio.onPause();
     super.onPause();
   }
 
   @Override
   protected void onResume()
   {
-
-    Log.i(LOG, "onResume");
-    SDLLib.onResume();
-    SDLLib.nativeResume();
+    SDLAudio.onResume();
+    SDLAudio.nativeResume();
     super.onResume();
     mGLSurfaceView.onResume();
   }
@@ -154,91 +132,60 @@ public class Game extends AbstractActivity implements Handler.Callback
   @Override
   protected void onDestroy()
   {
-    Log.i(LOG, "onDestroy");
     super.onDestroy();
     System.exit(0);
   }
 
-  ///////////// GLSurfaceView.Renderer implementation ///////////
-
-  private class DoomRenderer implements MyGLSurfaceView.Renderer
+  public void onSurfaceCreated(GL10 gl, EGLConfig config)
   {
+  }
 
+  public void onDrawFrame(GL10 gl)
+  {
+    if (!mInitialized)
+      return;
 
-    boolean divDone = false;
+    if (!divDone)
+      Game.this.runOnUiThread(new Runnable()
+      {
+        @Override
+        public void run()
+        {
+          mGLSurfaceView.getHolder().setFixedSize(surfaceWidth, surfaceHeight);
+          divDone = true;
+        }
+      });
 
-    public void onSurfaceCreated(GL10 gl, EGLConfig config)
-    {
-      Log.d("Renderer", "onSurfaceCreated");
-    }
-
-    private void init()
+    if (divDone)
     {
       String gzdoom_args = "-width " + surfaceWidth + " -height " + surfaceHeight + " +set vid_renderer 1 ";
       String[] args_array = Utils.creatArgs(args + gzdoom_args);
       NativeLib.init(48000, args_array, 0, gamePath);
     }
-
-    public void onDrawFrame(GL10 gl)
+    else
     {
-
-      if (!mInitialized)
-        return;
-
-      Log.d("Renderer", "onDrawFrame");
-
-      if (!divDone)
-        handlerUI.post(new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            mGLSurfaceView.getHolder().setFixedSize(surfaceWidth, surfaceHeight);
-            divDone = true;
-          }
-        });
-
-      if (divDone)
-        init();
-      else
+      try
       {
-        try
-        {
-          Thread.sleep(200);
-        } catch (InterruptedException e)
-        {
-          e.printStackTrace();
-        }
-      }
-      Log.d("Renderer", "onDrawFrame END");
-
-    }
-
-    boolean SDLinited = false;
-
-    public void onSurfaceChanged(GL10 gl, int width, int height)
-    {
-      Log.d("Renderer", String.format("onSurfaceChanged %dx%d", width, height));
-
-      if (surfaceWidth == -1)
+        Thread.sleep(200);
+      } catch (InterruptedException e)
       {
-        surfaceWidth = width;
-        surfaceHeight = height;
-      }
-
-      if (!SDLinited)
-      {
-        SDLLib.nativeInit(false);
-        SDLLib.surfaceChanged(PixelFormat.RGBA_8888, surfaceWidth, surfaceHeight);
-        SDLinited = true;
+        e.printStackTrace();
       }
     }
   }
 
-
-  @Override
-  public boolean handleMessage(Message msg)
+  public void onSurfaceChanged(GL10 gl, int width, int height)
   {
-    return false;
+    if (surfaceWidth == -1)
+    {
+      surfaceWidth = width;
+      surfaceHeight = height;
+    }
+
+    if (!SDLinited)
+    {
+      SDLAudio.nativeInit(false);
+      SDLinited = true;
+    }
   }
 }

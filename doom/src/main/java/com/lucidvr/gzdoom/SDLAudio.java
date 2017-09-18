@@ -1,11 +1,5 @@
-package com.beloko.libsdl;
+package com.lucidvr.gzdoom;
 
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
-
-import android.graphics.PixelFormat;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -15,12 +9,13 @@ import android.util.Log;
 /**
     SDL Activity
  */
-public class SDLLib {
+class SDLAudio
+{
 
 	private static final Object threadLock = new Object();
-	public static boolean resumed = false;
+	private static boolean resumed = false;
 	
-	public static void loadSDL()
+	static void loadSDL()
 	{
 
 		try {
@@ -38,14 +33,6 @@ public class SDLLib {
 	// Audio
 	private static Thread mAudioThread;
 	private static AudioTrack mAudioTrack;
-
-	// EGL private objects
-	private static EGLContext  mEGLContext;
-	private static EGLSurface  mEGLSurface;
-	private static EGLDisplay  mEGLDisplay;
-	private static EGLConfig   mEGLConfig;
-	private static int mGLMajor, mGLMinor;
-
 
 	// C functions we call
 	public static native void nativeInit(boolean launch);
@@ -76,75 +63,19 @@ public class SDLLib {
 
 	}
 
-	// Called when the surface is resized
-	public static void surfaceChanged(int format, int width, int height) {
-		Log.v("SDL", "surfaceChanged()");
-
-		int sdlFormat = 0x85151002; // SDL_PIXELFORMAT_RGB565 by default
-		switch (format) {
-		case PixelFormat.A_8:
-			Log.v("SDL", "pixel format A_8");
-			break;
-		case PixelFormat.LA_88:
-			Log.v("SDL", "pixel format LA_88");
-			break;
-		case PixelFormat.L_8:
-			Log.v("SDL", "pixel format L_8");
-			break;
-		case PixelFormat.RGBA_4444:
-			Log.v("SDL", "pixel format RGBA_4444");
-			sdlFormat = 0x85421002; // SDL_PIXELFORMAT_RGBA4444
-			break;
-		case PixelFormat.RGBA_5551:
-			Log.v("SDL", "pixel format RGBA_5551");
-			sdlFormat = 0x85441002; // SDL_PIXELFORMAT_RGBA5551
-			break;
-		case PixelFormat.RGBA_8888:
-			Log.v("SDL", "pixel format RGBA_8888");
-			sdlFormat = 0x86462004; // SDL_PIXELFORMAT_RGBA8888
-			break;
-		case PixelFormat.RGBX_8888:
-			Log.v("SDL", "pixel format RGBX_8888");
-			sdlFormat = 0x86262004; // SDL_PIXELFORMAT_RGBX8888
-			break;
-		case PixelFormat.RGB_332:
-			Log.v("SDL", "pixel format RGB_332");
-			sdlFormat = 0x84110801; // SDL_PIXELFORMAT_RGB332
-			break;
-		case PixelFormat.RGB_565:
-			Log.v("SDL", "pixel format RGB_565");
-			sdlFormat = 0x85151002; // SDL_PIXELFORMAT_RGB565
-			break;
-		case PixelFormat.RGB_888:
-			Log.v("SDL", "pixel format RGB_888");
-			// Not sure this is right, maybe SDL_PIXELFORMAT_RGB24 instead?
-			sdlFormat = 0x86161804; // SDL_PIXELFORMAT_RGB888
-			break;
-		default:
-			Log.v("SDL", "pixel format unknown " + format);
-			break;
-		}
-		SDLLib.onNativeResize(width, height, sdlFormat);
-		Log.v("SDL", "Window size:" + width + "x"+height);
-	}
-
-
-
 	// Audio
-	public static void onPause()
+	static void onPause()
 	{
 		resumed = false;
 	}
 	
-	public static void onResume()
+	static void onResume()
 	{	
 		resumed = true;
 		synchronized (threadLock){
 			threadLock.notifyAll();
 		}	
 	}
-	
-	private static Object buf;
 
 	public static Object audioInit(int sampleRate, boolean is16Bit, boolean isStereo, int desiredFrames) {
 		int channelConfig = isStereo ? AudioFormat.CHANNEL_CONFIGURATION_STEREO : AudioFormat.CHANNEL_CONFIGURATION_MONO;
@@ -165,6 +96,7 @@ public class SDLLib {
 
 		Log.v("SDL", "SDL audio: got " + ((mAudioTrack.getChannelCount() >= 2) ? "stereo" : "mono") + " " + ((mAudioTrack.getAudioFormat() == AudioFormat.ENCODING_PCM_16BIT) ? "16-bit" : "8-bit") + " " + ((float)mAudioTrack.getSampleRate() / 1000f) + "kHz, " + desiredFrames + " frames buffer");
 
+		Object buf;
 		if (is16Bit) {
 			buf = new short[desiredFrames * (isStereo ? 2 : 1)];
 		} else {
@@ -173,7 +105,7 @@ public class SDLLib {
 		return buf;
 	}
 
-	public static void audioStartThread() {
+	private static void audioStartThread() {
 		mAudioThread = new Thread(new Runnable() {
 			public void run() {
 				mAudioTrack.play();
@@ -269,7 +201,3 @@ public class SDLLib {
 		}
 	}
 }
-
-
-
-

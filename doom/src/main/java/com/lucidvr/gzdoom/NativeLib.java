@@ -2,8 +2,6 @@ package com.lucidvr.gzdoom;
 
 import android.util.Log;
 
-import com.beloko.libsdl.SDLLib;
-
 class NativeLib {
 
 	static void loadLibraries()
@@ -12,7 +10,7 @@ class NativeLib {
 		try {
 			Log.i("JNI", "Trying to load libraries");
 
-			SDLLib.loadSDL();
+			SDLAudio.loadSDL();
 			System.loadLibrary("fmod");
 			System.loadLibrary("openal");
 			System.loadLibrary("gzdoom");
