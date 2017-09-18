@@ -965,12 +965,6 @@ void DSaveMenu::DoSave (FSaveGameNode *node)
 	V_SetBorderNeedRefresh();
 }
 
-#ifdef __ANDROID__
-extern "C"
-{
-extern void showKeyboard(int val);
-}
-#endif
 //=============================================================================
 //
 //
@@ -1001,23 +995,14 @@ bool DSaveMenu::MenuEvent (int mkey, bool fromcontroller)
 		DMenu *input = new DTextEnterMenu(this, savegamestring, SAVESTRINGSIZE, 1, fromcontroller);
 		M_ActivateMenu(input);
 		mEntering = true;
-#ifdef __ANDROID__
-		showKeyboard(1);
-#endif
 	}
 	else if (mkey == MKEY_Input)
 	{
-#ifdef __ANDROID__
-		showKeyboard(0);
-#endif
 		mEntering = false;
 		DoSave(SaveGames[Selected]);
 	}
 	else if (mkey == MKEY_Abort)
 	{
-#ifdef __ANDROID__
-		showKeyboard(0);
-#endif
 		mEntering = false;
 	}
 	return false;

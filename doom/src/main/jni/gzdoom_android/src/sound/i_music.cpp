@@ -439,7 +439,7 @@ MusInfo *I_RegisterSong (const char *filename, BYTE *musiccache, int offset, int
 #ifndef _WIN32
 	// non-Windows platforms don't support MDEV_MMAPI so map to MDEV_FMOD
 	if (device == MDEV_MMAPI)
-		device = MDEV_FMOD;
+		device = MDEV_FLUIDSYNTH;
 #endif
 
 	// Check for gzip compression. Some formats are expected to have players
@@ -488,9 +488,9 @@ retry_as_fmod:
 			delete info;
 			info = NULL;
 		}
-		if (info == NULL && devtype != MDEV_FMOD && snd_mididevice < 0)
+		if (info == NULL && devtype != MDEV_FLUIDSYNTH && snd_mididevice < 0)
 		{
-			devtype = MDEV_FMOD;
+			devtype = MDEV_FLUIDSYNTH;
 			goto retry_as_fmod;
 		}
 #ifdef _WIN32

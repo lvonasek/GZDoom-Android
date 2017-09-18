@@ -1,10 +1,7 @@
 package com.lucidvr.gzdoom;
 
 import android.util.SparseIntArray;
-import android.view.KeyEvent;
 
-import com.beloko.touchcontrols.ControlConfig;
-import com.beloko.touchcontrols.ControlInterpreter;
 import com.lucidvr.sdk.DaydreamController;
 
 class VRController
@@ -14,8 +11,19 @@ class VRController
   private static float yaw;
   private static long timestamp;
 
-  public static void update(SparseIntArray data, float[] head, ControlInterpreter controlInterp)
+  public static void update(SparseIntArray data, float[] head)
   {
+    int PORT_ACT_MENU_UP     = 0x200;
+    int PORT_ACT_MENU_DOWN   = 0x201;
+    int PORT_ACT_MENU_LEFT   = 0x202;
+    int PORT_ACT_MENU_RIGHT  = 0x203;
+    int PORT_ACT_MENU_SELECT = 0x204;
+    int PORT_ACT_MENU_BACK   = 0x205;
+    int PORT_ACT_USE         = 11;
+    int PORT_ACT_ATTACK      = 13;
+    int PORT_ACT_NEXT_WEP    = 16;
+    int PORT_ACT_PREV_WEP    = 17;
+
     //touchpad - walking
     int x = data.get(DaydreamController.SWP_X);
     int y = data.get(DaydreamController.SWP_Y);
@@ -49,28 +57,28 @@ class VRController
 
     //touchpad - menu
     if (data.get(DaydreamController.SWP_X) > 50)
-      sendActionEvent(ControlConfig.MENU_RIGHT);
+      sendActionEvent(PORT_ACT_MENU_RIGHT);
     if (data.get(DaydreamController.SWP_X) < -50)
-      sendActionEvent(ControlConfig.MENU_LEFT);
+      sendActionEvent(PORT_ACT_MENU_LEFT);
     if (data.get(DaydreamController.SWP_Y) > 50)
-      sendActionEvent(ControlConfig.MENU_DOWN);
+      sendActionEvent(PORT_ACT_MENU_DOWN);
     if (data.get(DaydreamController.SWP_Y) < -50)
-      sendActionEvent(ControlConfig.MENU_UP);
+      sendActionEvent(PORT_ACT_MENU_UP);
 
     //buttons
     if (data.get(DaydreamController.BTN_CLICK) > 0)
     {
-      sendMenuEvent(controlInterp, KeyEvent.KEYCODE_ENTER);
-      sendKeyEvent(controlInterp, KeyEvent.KEYCODE_CTRL_LEFT, true);
+      sendMenuEvent(PORT_ACT_MENU_SELECT);
+      sendKeyEvent(PORT_ACT_ATTACK, true);
     }
     if (data.get(DaydreamController.BTN_HOME) > 0)
-      sendMenuEvent(controlInterp, KeyEvent.KEYCODE_BACK);
+      sendMenuEvent(PORT_ACT_MENU_BACK);
     if (data.get(DaydreamController.BTN_APP) > 0)
-      sendKeyEvent(controlInterp, KeyEvent.KEYCODE_SPACE, false);
+      sendKeyEvent(PORT_ACT_USE, false);
     if (data.get(DaydreamController.BTN_VOL_UP) > 0)
-      sendActionEvent(ControlConfig.PORT_ACT_NEXT_WEP);
+      sendActionEvent(PORT_ACT_NEXT_WEP);
     if (data.get(DaydreamController.BTN_VOL_DOWN) > 0)
-      sendActionEvent(ControlConfig.PORT_ACT_PREV_WEP);
+      sendActionEvent(PORT_ACT_PREV_WEP);
   }
 
   private static void sendActionEvent(int code)
@@ -83,14 +91,14 @@ class VRController
     }
   }
 
-  private static void sendKeyEvent(final ControlInterpreter controlInterp, final int code, final boolean fire)
+  private static void sendKeyEvent(final int code, final boolean fire)
   {
     new Thread(new Runnable()
     {
       @Override
       public void run()
       {
-        controlInterp.onKeyDown(code, null);
+        NativeLib.doAction(1, code);
         try
         {
           Thread.sleep(fire ? 50 : 200);
@@ -98,18 +106,18 @@ class VRController
         {
           e.printStackTrace();
         }
-        controlInterp.onKeyUp(code, null);
+        NativeLib.doAction(0, code);
       }
     }).start();
   }
 
-  private static void sendMenuEvent(final ControlInterpreter controlInterp, int code)
+  private static void sendMenuEvent(int code)
   {
     if (timestamp + 250 < System.currentTimeMillis())
     {
       timestamp = System.currentTimeMillis();
-      controlInterp.onKeyDown(code, null);
-      controlInterp.onKeyUp(code, null);
+      NativeLib.doAction(1, code);
+      NativeLib.doAction(0, code);
     }
   }
 }

@@ -40,6 +40,7 @@
 
 #include "doomerrors.h"
 #include <math.h>
+#include <cstdlib>
 
 #include "SDL.h"
 #include "doomtype.h"
@@ -358,7 +359,7 @@ void I_Quit (void)
 		G_CheckDemoStatus();
 
 #ifdef __ANDROID__
-    appShutdown();
+    std::exit(0);
 #endif
 
 	C_DeinitConsole();

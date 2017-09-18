@@ -243,7 +243,7 @@ EMidiDevice MIDIStreamer::SelectMIDIDevice(EMidiDevice device)
 		#ifdef _WIN32
 					return MDEV_MMAPI;
 		#else
-					return MDEV_FMOD;
+					return MDEV_FLUIDSYNTH;
 		#endif
 	}
 }

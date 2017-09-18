@@ -178,15 +178,13 @@ void FGLRenderer::ResetViewport()
 void FGLRenderer::SetViewport(GL_IRECT *bounds)
 {
 	if (!bounds)
-	{
 		glViewport(viewportOffset, 0, SCREENWIDTH, SCREENHEIGHT);
-		glScissor(viewportOffset, 0, SCREENWIDTH, SCREENHEIGHT);
-	}
 	else
-	{
 		glViewport(viewportOffset + bounds->left, bounds->top, bounds->width, bounds->height);
-		glScissor(viewportOffset + bounds->left, bounds->top, bounds->width, bounds->height);
-	}
+
+	int viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glScissor(viewport[0], viewport[1], viewport[2], viewport[3]);
 	glEnable(GL_SCISSOR_TEST);
 
 	#ifdef _DEBUG

@@ -5,12 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.beloko.touchcontrols.TouchSettings;
+import java.io.File;
 
 public class EntryActivity extends Activity
 {
   private static String gzdoomBaseDir;
-  private static String graphicsDir = "";
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -23,14 +22,7 @@ public class EntryActivity extends Activity
 
   static void reloadSettings(Context ctx)
   {
-    TouchSettings.reloadSettings(ctx);
-    gzdoomBaseDir = "/data/data/" + ctx.getPackageName();
-    graphicsDir = ctx.getFilesDir().toString() + "/";
-  }
-
-  static String getGfxDir()
-  {
-    return graphicsDir;
+    gzdoomBaseDir = new File(ctx.getFilesDir(), ctx.getPackageName()).getAbsolutePath();
   }
 
   static String getFullDir()

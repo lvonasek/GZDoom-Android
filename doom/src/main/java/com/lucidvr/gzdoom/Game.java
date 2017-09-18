@@ -1,45 +1,19 @@
-/*
- * Copyright (C) 2009 jeyries@yahoo.fr
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.lucidvr.gzdoom;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.PixelFormat;
-import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.bda.controller.Controller;
-import com.bda.controller.ControllerListener;
-import com.bda.controller.StateEvent;
 import com.beloko.libsdl.SDLLib;
-import com.beloko.touchcontrols.ControlInterpreter;
-import com.beloko.touchcontrols.MogaHack;
-import com.beloko.touchcontrols.ShowKeyboard;
-import com.beloko.touchcontrols.TouchControlsEditing;
-import com.beloko.touchcontrols.TouchControlsSettings;
-import com.beloko.touchcontrols.TouchSettings;
 import com.lucidvr.sdk.AbstractActivity;
 import com.lucidvr.sdk.DaydreamController;
+
+import java.io.File;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -49,15 +23,10 @@ public class Game extends AbstractActivity implements Handler.Callback
 {
   String LOG = "Game";
 
-  private ControlInterpreter controlInterp;
-
-  private final MogaControllerListener mogaListener = new MogaControllerListener();
-  Controller mogaController = null;
-
   private String args;
   private String gamePath;
 
-  private GameView mGLSurfaceView = null;
+  private MyGLSurfaceView mGLSurfaceView = null;
   private DoomRenderer mRenderer = new DoomRenderer();
   private boolean mInitialized = false;
 
@@ -82,10 +51,6 @@ public class Game extends AbstractActivity implements Handler.Callback
     args = getIntent().getStringExtra("args");
     gamePath = getIntent().getStringExtra("game_path");
 
-    mogaController = Controller.getInstance(this);
-    MogaHack.init(mogaController, this);
-    mogaController.setListener(mogaListener, new Handler());
-
     // fullscreen
     requestWindowFeature(Window.FEATURE_NO_TITLE);
     getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -102,6 +67,9 @@ public class Game extends AbstractActivity implements Handler.Callback
     Utils.copyAsset(this, "gzdoom.pk3", base);
     Utils.copyAsset(this, "gzdoom.sf2", base);
     Utils.copyAsset(this, "doom1.wad", base);
+    File dir = new File(base, "gzdoom_dev");
+    if (!dir.exists())
+      Utils.copyAsset(this, "zdoom.ini", dir.getAbsolutePath());
     start_game();
   }
 
@@ -113,8 +81,9 @@ public class Game extends AbstractActivity implements Handler.Callback
   @Override
   protected void onConnectionChanged(boolean on)
   {
-    controlInterp.onKeyDown(KeyEvent.KEYCODE_BACK, null);
-    controlInterp.onKeyUp(KeyEvent.KEYCODE_BACK, null);
+    int code = 0x205;
+    NativeLib.doAction(1, code);
+    NativeLib.doAction(0, code);
   }
 
   @Override
@@ -122,7 +91,7 @@ public class Game extends AbstractActivity implements Handler.Callback
   {
     float[] angles = new float[3];
     getTransform().getEulerAngles(angles, 0);
-    VRController.update(DaydreamController.getStatus(), angles, controlInterp);
+    VRController.update(DaydreamController.getStatus(), angles);
   }
 
   @Override
@@ -144,22 +113,9 @@ public class Game extends AbstractActivity implements Handler.Callback
 
     NativeLib.loadLibraries();
 
-    NativeLib engine = new NativeLib();
-
-
-    controlInterp = new ControlInterpreter(engine, Utils.getGameGamepadConfig(), TouchSettings.gamePadControlsFile, TouchSettings.gamePadEnabled);
-
-    TouchControlsSettings.setup(act, engine);
-    TouchControlsSettings.loadSettings(act);
-    TouchControlsSettings.sendToQuake();
-
-    TouchControlsEditing.setup(act);
-
-    mGLSurfaceView = new GameView(this);
+    mGLSurfaceView = new MyGLSurfaceView(this);
 
     NativeLib.gv = mGLSurfaceView;
-
-    ShowKeyboard.setup(act, mGLSurfaceView);
 
     mGLSurfaceView.setEGLConfigChooser(new BestEglChooser(getApplicationContext()));
 
@@ -180,7 +136,6 @@ public class Game extends AbstractActivity implements Handler.Callback
     Log.i(LOG, "onPause");
     SDLLib.nativePause();
     SDLLib.onPause();
-    mogaController.onPause();
     super.onPause();
   }
 
@@ -191,7 +146,6 @@ public class Game extends AbstractActivity implements Handler.Callback
     Log.i(LOG, "onResume");
     SDLLib.onResume();
     SDLLib.nativeResume();
-    mogaController.onResume();
     super.onResume();
     mGLSurfaceView.onResume();
   }
@@ -202,74 +156,8 @@ public class Game extends AbstractActivity implements Handler.Callback
   {
     Log.i(LOG, "onDestroy");
     super.onDestroy();
-    mogaController.exit();
     System.exit(0);
   }
-
-  private class MogaControllerListener implements ControllerListener
-  {
-
-
-    @Override
-    public void onKeyEvent(com.bda.controller.KeyEvent event)
-    {
-      //Log.d(LOG,"onKeyEvent " + event.getKeyCode());
-      controlInterp.onMogaKeyEvent(event, mogaController.getState(Controller.STATE_CURRENT_PRODUCT_VERSION));
-    }
-
-    @Override
-    public void onMotionEvent(com.bda.controller.MotionEvent event)
-    {
-      controlInterp.onGenericMotionEvent(event);
-    }
-
-    @Override
-    public void onStateEvent(StateEvent event)
-    {
-      Log.d(LOG, "onStateEvent " + event.getState());
-    }
-  }
-
-  class GameView extends MyGLSurfaceView
-  {
-
-		/*--------------------
-     * Event handling
-		 *--------------------*/
-
-
-    public GameView(Context context)
-    {
-      super(context);
-
-    }
-
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent event)
-    {
-      return controlInterp.onGenericMotionEvent(event);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event)
-    {
-      return controlInterp.onTouchEvent(event);
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
-      return controlInterp.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event)
-    {
-      return controlInterp.onKeyUp(keyCode, event);
-    }
-
-  }
-
 
   ///////////// GLSurfaceView.Renderer implementation ///////////
 
@@ -284,32 +172,11 @@ public class Game extends AbstractActivity implements Handler.Callback
       Log.d("Renderer", "onSurfaceCreated");
     }
 
-    private void init(int width, int height)
+    private void init()
     {
-
-      Log.i(LOG, "screen size : " + width + "x" + height);
-
-      NativeLib.setScreenSize(width, height);
-
-      Utils.copyPNGAssets(getApplicationContext(), EntryActivity.getGfxDir());
-
-      Log.i(LOG, "DoomInit start");
-
-      //args = "-width 1280 -height 736 +set vid_renderer 1 -iwad tnt.wad -file brutal19.pk3 +set fluid_patchset /sdcard/WeedsGM3.sf2";
-      //args = "+set vid_renderer 1 ";
       String gzdoom_args = "-width " + surfaceWidth + " -height " + surfaceHeight + " +set vid_renderer 1 ";
       String[] args_array = Utils.creatArgs(args + gzdoom_args);
-
-      int audioSameple = AudioTrack.getNativeOutputSampleRate(AudioTrack.MODE_STREAM);
-      Log.d(LOG, "audioSample = " + audioSameple);
-
-      if ((audioSameple != 48000) && (audioSameple != 44100)) //Just in case
-        audioSameple = 48000;
-
-      int ret = NativeLib.init(EntryActivity.getGfxDir(), audioSameple, args_array, 0, gamePath);
-
-      Log.i(LOG, "DoomInit done - " + ret);
-
+      NativeLib.init(48000, args_array, 0, gamePath);
     }
 
     public void onDrawFrame(GL10 gl)
@@ -332,7 +199,7 @@ public class Game extends AbstractActivity implements Handler.Callback
         });
 
       if (divDone)
-        init(surfaceWidth, surfaceHeight);
+        init();
       else
       {
         try
@@ -365,7 +232,6 @@ public class Game extends AbstractActivity implements Handler.Callback
         SDLLib.surfaceChanged(PixelFormat.RGBA_8888, surfaceWidth, surfaceHeight);
         SDLinited = true;
       }
-      controlInterp.setScreenSize(surfaceWidth, surfaceHeight);
     }
   }
 
@@ -376,5 +242,3 @@ public class Game extends AbstractActivity implements Handler.Callback
     return false;
   }
 }
-
-

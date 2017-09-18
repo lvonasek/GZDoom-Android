@@ -4,9 +4,3 @@
 [submodule "doom/src/main/jni/openal-soft-android"]
 	path = doom/src/main/jni/openal-soft-android
 	url = https://github.com/nvllsvm/openal-soft-android.git
-[submodule "doom/src/main/jni/MobileTouchControls"]
-	path = doom/src/main/jni/MobileTouchControls
-	url = https://github.com/nvllsvm/MobileTouchControls.git
-[submodule "TouchControls"]
-	path = TouchControls
-	url = https://github.com/nvllsvm/TouchControls.git

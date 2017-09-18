@@ -152,144 +152,117 @@ void PortableAction(int state, int action)
 {
 	LOGI("PortableAction %d   %d",state,action);
 
-	if (PortableGetScreenMode() == TS_MENU)
-	{
-		if (action >= PORT_ACT_MENU_UP && action <= PORT_ACT_MENU_BACK)
-		{
+    if ((action >= PORT_ACT_MENU_UP) && (action <= PORT_ACT_MENU_BACK))
+    {
+        int sdl_code [] = { SDL_SCANCODE_UP, SDL_SCANCODE_DOWN, SDL_SCANCODE_LEFT,
+                            SDL_SCANCODE_RIGHT, SDL_SCANCODE_RETURN, SDL_SCANCODE_ESCAPE };
+        PortableKeyEvent(state, sdl_code[action-PORT_ACT_MENU_UP], 0);
+        return;
 
-			int sdl_code [] = { SDL_SCANCODE_UP, SDL_SCANCODE_DOWN, SDL_SCANCODE_LEFT,
-					SDL_SCANCODE_RIGHT, SDL_SCANCODE_RETURN, SDL_SCANCODE_ESCAPE };
-			PortableKeyEvent(state, sdl_code[action-PORT_ACT_MENU_UP], 0);
-			return;
-
-		}
-	}
-	else
-	{
-
-		if ((action >= PORT_ACT_CUSTOM_0) && (action <= PORT_ACT_CUSTOM_7))
-		{
-			PortableKeyEvent(state, SDL_SCANCODE_A + action - PORT_ACT_CUSTOM_0, 0);
-		}
-		else
-		{
-			switch (action)
-			{
-			case PORT_ACT_LEFT:
-				buttonChange(state,&Button_Left);
-				break;
-			case PORT_ACT_RIGHT:
-				buttonChange(state,&Button_Right);
-				break;
-			case PORT_ACT_FWD:
-				buttonChange(state,&Button_Forward);
-				break;
-			case PORT_ACT_BACK:
-				buttonChange(state,&Button_Back);
-				break;
-			case PORT_ACT_MOVE_LEFT:
-				buttonChange(state,&Button_MoveLeft);
-				break;
-			case PORT_ACT_MOVE_RIGHT:
-				buttonChange(state,&Button_MoveRight);
-				break;
-			case PORT_ACT_USE:
-				buttonChange(state,&Button_Use);
-				break;
-			case PORT_ACT_ATTACK:
-				buttonChange(state,&Button_Attack);
-				break;
-			case PORT_ACT_ALT_ATTACK:
-				buttonChange(state,&Button_AltAttack);
-				break;
-			case PORT_ACT_JUMP:
-				buttonChange(state,&Button_Jump);
-				break;
-			case PORT_ACT_DOWN:
-				buttonChange(state,&Button_Crouch);
-				break;
-			case PORT_ACT_NEXT_WEP:
-				if (state)
-					PortableCommand("weapnext");
-				break;
-			case PORT_ACT_PREV_WEP:
-				if (state)
-					PortableCommand("weapprev");
-				break;
-			case PORT_ACT_MAP:
-				if (state)
-					PortableCommand("togglemap");
-				break;
-			case PORT_ACT_QUICKLOAD:
-				if (state)
-					PortableCommand("quickload");
-				break;
-			case PORT_ACT_QUICKSAVE:
-				if (state)
-					PortableCommand("quicksave");
-				break;
-			case PORT_ACT_WEAP0:
-				if (state)
-					PortableCommand("slot 0");
-				break;
-			case PORT_ACT_WEAP1:
-				if (state)
-					PortableCommand("slot 1");
-				break;
-			case PORT_ACT_WEAP2:
-				if (state)
-					PortableCommand("slot 2");
-				break;
-			case PORT_ACT_WEAP3:
-				if (state)
-					PortableCommand("slot 3");
-				break;
-			case PORT_ACT_WEAP4:
-				if (state)
-					PortableCommand("slot 4");
-				break;
-			case PORT_ACT_WEAP5:
-				if (state)
-					PortableCommand("slot 5");
-				break;
-			case PORT_ACT_WEAP6:
-				if (state)
-					PortableCommand("slot 6");
-				break;
-			case PORT_ACT_WEAP7:
-				if (state)
-					PortableCommand("slot 7");
-				break;
-			case PORT_ACT_WEAP8:
-				if (state)
-					PortableCommand("slot 8");
-				break;
-			case PORT_ACT_WEAP9:
-				if (state)
-					PortableCommand("slot 9");
-				break;
-			}
-		}
-	}
+    } else if ((action >= PORT_ACT_CUSTOM_0) && (action <= PORT_ACT_CUSTOM_7))
+    {
+        PortableKeyEvent(state, SDL_SCANCODE_A + action - PORT_ACT_CUSTOM_0, 0);
+    }
+    else
+    {
+        switch (action)
+        {
+            case PORT_ACT_LEFT:
+                buttonChange(state,&Button_Left);
+                break;
+            case PORT_ACT_RIGHT:
+                buttonChange(state,&Button_Right);
+                break;
+            case PORT_ACT_FWD:
+                buttonChange(state,&Button_Forward);
+                break;
+            case PORT_ACT_BACK:
+                buttonChange(state,&Button_Back);
+                break;
+            case PORT_ACT_MOVE_LEFT:
+                buttonChange(state,&Button_MoveLeft);
+                break;
+            case PORT_ACT_MOVE_RIGHT:
+                buttonChange(state,&Button_MoveRight);
+                break;
+            case PORT_ACT_USE:
+                buttonChange(state,&Button_Use);
+                break;
+            case PORT_ACT_ATTACK:
+                buttonChange(state,&Button_Attack);
+                break;
+            case PORT_ACT_ALT_ATTACK:
+                buttonChange(state,&Button_AltAttack);
+                break;
+            case PORT_ACT_JUMP:
+                buttonChange(state,&Button_Jump);
+                break;
+            case PORT_ACT_DOWN:
+                buttonChange(state,&Button_Crouch);
+                break;
+            case PORT_ACT_NEXT_WEP:
+                if (state)
+                    PortableCommand("weapnext");
+                break;
+            case PORT_ACT_PREV_WEP:
+                if (state)
+                    PortableCommand("weapprev");
+                break;
+            case PORT_ACT_MAP:
+                if (state)
+                    PortableCommand("togglemap");
+                break;
+            case PORT_ACT_QUICKLOAD:
+                if (state)
+                    PortableCommand("quickload");
+                break;
+            case PORT_ACT_QUICKSAVE:
+                if (state)
+                    PortableCommand("quicksave");
+                break;
+            case PORT_ACT_WEAP0:
+                if (state)
+                    PortableCommand("slot 0");
+                break;
+            case PORT_ACT_WEAP1:
+                if (state)
+                    PortableCommand("slot 1");
+                break;
+            case PORT_ACT_WEAP2:
+                if (state)
+                    PortableCommand("slot 2");
+                break;
+            case PORT_ACT_WEAP3:
+                if (state)
+                    PortableCommand("slot 3");
+                break;
+            case PORT_ACT_WEAP4:
+                if (state)
+                    PortableCommand("slot 4");
+                break;
+            case PORT_ACT_WEAP5:
+                if (state)
+                    PortableCommand("slot 5");
+                break;
+            case PORT_ACT_WEAP6:
+                if (state)
+                    PortableCommand("slot 6");
+                break;
+            case PORT_ACT_WEAP7:
+                if (state)
+                    PortableCommand("slot 7");
+                break;
+            case PORT_ACT_WEAP8:
+                if (state)
+                    PortableCommand("slot 8");
+                break;
+            case PORT_ACT_WEAP9:
+                if (state)
+                    PortableCommand("slot 9");
+                break;
+        }
+    }
 }
-
-int mdx=0,mdy=0;
-void PortableMouse(float dx,float dy)
-{
-	dx *= 1500;
-	dy *= 1200;
-
-	mdx += dx;
-	mdy += dy;
-}
-
-int absx=0,absy=0;
-void PortableMouseAbs(float x,float y)
-{
-	absx = x;
-	absy = y;
-}
-
 
 // =================== FORWARD and SIDE MOVMENT ==============
 
@@ -369,34 +342,6 @@ void PortableInit(int argc,const char ** argv){
 
 extern bool		automapactive;
 bool bindingbutton = false;
-
-touchscreemode_t PortableGetScreenMode()
-{
-
-	if (menuactive != MENU_Off)
-	{
-		if (bindingbutton)
-			return TS_CUSTOM;
-		else
-			return TS_MENU;
-	}
-	else if (gamestate == GS_LEVEL) // In a game
-	{
-		if (automapactive)
-			return TS_MAP;
-		else
-			return TS_GAME;
-	}
-	else
-		return TS_BLANK;
-
-}
-
-
-int PortableShowKeyboard(void){
-
-	return 0;
-}
 
 const char *cmd_to_run = NULL;
 void PortableCommand(const char * cmd)

@@ -132,8 +132,12 @@ public abstract class AbstractActivity extends GvrActivity implements
   protected void onDestroy()
   {
     super.onDestroy();
-    unbindService(mServiceConnection);
-    mBluetooth = null;
+    try {
+      unbindService(mServiceConnection);
+      mBluetooth = null;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
