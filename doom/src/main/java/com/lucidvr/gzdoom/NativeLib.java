@@ -22,6 +22,7 @@ class NativeLib {
 	}
 
 	public static native void init(int mem,String[] args,int game,String path);
+	public static native void loop();
 
 	public static native void keypress(int down, int qkey, int unicode);
 	public static native void doAction(int state, int action);
@@ -29,16 +30,4 @@ class NativeLib {
 	public static native void analogSide(float v);
 	public static native void analogPitch(int mode,float v);
 	public static native void analogYaw(int mode,float v);
-
-	static MyGLSurfaceView gv;
-
-	static void swapBuffers()
-	{
-		boolean canDraw;
-		do
-		{
-			gv.swapBuffers();
-			canDraw = gv.setupSurface();
-		}while (!canDraw);
-	}
 }

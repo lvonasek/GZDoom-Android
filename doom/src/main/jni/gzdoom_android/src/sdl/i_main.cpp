@@ -259,14 +259,13 @@ int main_android (int argc, char **argv)
 #endif
 	
 	setlocale (LC_ALL, "C");
-
+#ifndef ANDROID
 	if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE|SDL_INIT_JOYSTICK) == -1)
 	{
 		LOGE( "Could not initialize SDL:\n%s\n", SDL_GetError());
 		return -1;
 	}
 	atterm (SDL_Quit);
-
 	{
 		char viddriver[80];
 
@@ -283,6 +282,7 @@ int main_android (int argc, char **argv)
 	char caption[100];
 	mysnprintf(caption, countof(caption), GAMESIG " %s (%s)", GetVersionString(), GetGitTime());
 	SDL_WM_SetCaption(caption, caption);
+#endif
 
 #ifdef __APPLE__
 	
@@ -360,4 +360,9 @@ int main_android (int argc, char **argv)
 		throw;
     }
     return 0;
+}
+
+void loop_android()
+{
+	D_DoomLoop();
 }

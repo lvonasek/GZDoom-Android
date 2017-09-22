@@ -18,31 +18,14 @@ extern "C"
 
 bool shooting = false;
 
-extern JNIEnv* env_;
-
 GLfloat   model[16];
-
-static jclass NativeLibClass = 0;
-static jmethodID swapBuffersMethod = 0;
-void swapBuffers()
-{
-	if (NativeLibClass == 0)
-	{
-		NativeLibClass = env_->FindClass("com/lucidvr/gzdoom/NativeLib");
-		swapBuffersMethod = env_->GetStaticMethodID(NativeLibClass, "swapBuffers", "()V");
-	}
-	env_->CallStaticVoidMethod(NativeLibClass, swapBuffersMethod);
-}
 
 void frameControls()
 {
-	swapBuffers();
 }
 
 
 #define EXPORT_ME __attribute__ ((visibility("default")))
-
-JNIEnv* env_;
 
 int argc=1;
 const char * argv[32];
@@ -59,7 +42,6 @@ int android_audio_rate;
 void EXPORT_ME
 JAVA_FUNC(init) ( JNIEnv* env,	jobject thiz,jint audio_rate,jobjectArray argsArray,jint lowRes,jstring game_path_ )
 {
-	env_ = env;
 	android_audio_rate = audio_rate;
 
 	argv[0] = "quake";
@@ -86,9 +68,15 @@ JAVA_FUNC(init) ( JNIEnv* env,	jobject thiz,jint audio_rate,jobjectArray argsArr
 	SDL_SetSwapBufferCallBack(frameControls);
 
 	//Now done in java to keep context etc
-	SDL_SwapBufferPerformsSwap(false);
+	SDL_SwapBufferPerformsSwap(true);
 
 	PortableInit(argc,argv); //Never returns!!
+}
+
+void EXPORT_ME
+JAVA_FUNC(loop) ( JNIEnv* env,	jobject thiz )
+{
+    PortableLoop();
 }
 
 __attribute__((visibility("default"))) jint JNI_OnLoad(JavaVM* vm, void* reserved)

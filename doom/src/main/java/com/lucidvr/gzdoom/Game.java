@@ -1,5 +1,6 @@
 package com.lucidvr.gzdoom;
 
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
@@ -12,15 +13,15 @@ import java.io.File;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class Game extends AbstractActivity implements MyGLSurfaceView.Renderer
+public class Game extends AbstractActivity implements GLSurfaceView.Renderer
 {
   private String args;
   private String gamePath;
 
-  private MyGLSurfaceView mGLSurfaceView = null;
+  private GLSurfaceView mGLSurfaceView = null;
   private boolean mInitialized = false;
-  private boolean divDone = false;
   private boolean SDLinited = false;
+  private boolean doomInit = false;
   private int surfaceWidth = -1, surfaceHeight;
 
   /**
@@ -53,7 +54,15 @@ public class Game extends AbstractActivity implements MyGLSurfaceView.Renderer
     File dir = new File(base, "gzdoom_dev");
     if (!dir.exists())
       Utils.copyAsset(this, "zdoom.ini", dir.getAbsolutePath());
-    start_game();
+
+    //Set OpenGL
+    NativeLib.loadLibraries();
+    mGLSurfaceView = new GLSurfaceView(this);
+    mGLSurfaceView.setRenderer(this);
+    mGLSurfaceView.setKeepScreenOn(true);
+    setContentView(mGLSurfaceView);
+    mGLSurfaceView.requestFocus();
+    mGLSurfaceView.setFocusableInTouchMode(true);
   }
 
   @Override
@@ -90,27 +99,6 @@ public class Game extends AbstractActivity implements MyGLSurfaceView.Renderer
     Utils.onWindowFocusChanged(this, hasFocus);
   }
 
-
-  public void start_game()
-  {
-
-    NativeLib.loadLibraries();
-
-    mGLSurfaceView = new MyGLSurfaceView(this);
-
-    NativeLib.gv = mGLSurfaceView;
-
-    mGLSurfaceView.setRenderer(this);
-
-    // This will keep the screen on, while your view is visible.
-    mGLSurfaceView.setKeepScreenOn(true);
-
-    setContentView(mGLSurfaceView);
-    mGLSurfaceView.requestFocus();
-    mGLSurfaceView.setFocusableInTouchMode(true);
-  }
-
-
   @Override
   protected void onPause()
   {
@@ -145,32 +133,14 @@ public class Game extends AbstractActivity implements MyGLSurfaceView.Renderer
     if (!mInitialized)
       return;
 
-    if (!divDone)
-      Game.this.runOnUiThread(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          mGLSurfaceView.getHolder().setFixedSize(surfaceWidth, surfaceHeight);
-          divDone = true;
-        }
-      });
-
-    if (divDone)
+    if (doomInit)
     {
+      NativeLib.loop();
+    } else {
       String gzdoom_args = "-width " + surfaceWidth + " -height " + surfaceHeight + " +set vid_renderer 1 ";
       String[] args_array = Utils.creatArgs(args + gzdoom_args);
       NativeLib.init(48000, args_array, 0, gamePath);
-    }
-    else
-    {
-      try
-      {
-        Thread.sleep(200);
-      } catch (InterruptedException e)
-      {
-        e.printStackTrace();
-      }
+      doomInit = true;
     }
   }
 

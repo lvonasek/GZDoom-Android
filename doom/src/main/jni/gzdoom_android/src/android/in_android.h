@@ -31,6 +31,7 @@ void PortableCommand(const char * cmd);
 void PortableAutomapControl(float zoom, float x, float y);
 
 void PortableInit(int argc,const char ** argv);
+void PortableLoop();
 void PortableFrame(void);
 
 int PortableShowKeyboard(void);

@@ -1,6 +1,7 @@
 
 
 extern int main_android (int argc, char **argv);
+extern void loop_android();
 
 
 
@@ -338,6 +339,10 @@ void PortableLookYaw(int mode, float yaw)
 
 void PortableInit(int argc,const char ** argv){
 	main_android(argc,(char **)argv);
+}
+
+void PortableLoop(){
+	loop_android();
 }
 
 extern bool		automapactive;

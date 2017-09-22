@@ -138,7 +138,6 @@ void D_LoadWadSettings ();
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
-void D_DoomLoop ();
 static const char *BaseFileSearch (const char *file, const char *ext, bool lookfirstinprogdir=false);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
@@ -947,19 +946,12 @@ void D_ErrorCleanup ()
 // calls I_GetTime, I_StartFrame, and I_StartTic
 //
 //==========================================================================
-
+int lasttic = 0;
 void D_DoomLoop ()
 {
-	int lasttic = 0;
-
-	// Clamp the timer to TICRATE until the playloop has been entered.
-	r_NoInterpolate = true;
-	Page = Advisory = NULL;
-
-	vid_cursor.Callback();
-    unsigned char * scr = (unsigned char *)M_Malloc(SCREENWIDTH * SCREENHEIGHT * 4);
-
+#ifndef ANDROID
 	for (;;)
+#endif
 	{
 		try
 		{
@@ -2239,9 +2231,10 @@ void D_DoomMain (void)
 
 
 	// reinit from here
-
+#ifndef __ANDROID__
 	do
 	{
+#endif
 		if (restart)
 		{
 			C_InitConsole(SCREENWIDTH, SCREENHEIGHT, false);
@@ -2506,21 +2499,6 @@ void D_DoomMain (void)
 				G_LoadGame (file);
 			}
 
-			v = Args->CheckValue("-playdemo");
-			if (v != NULL)
-			{
-				singledemo = true;				// quit after one demo
-				G_DeferedPlayDemo (v);
-				D_DoomLoop ();	// never returns
-			}
-
-			v = Args->CheckValue ("-timedemo");
-			if (v)
-			{
-				G_TimeDemo (v);
-				D_DoomLoop ();	// never returns
-			}
-
 			if (gameaction != ga_loadgame && gameaction != ga_loadgamehidecon)
 			{
 				if (autostart || netgame)
@@ -2563,6 +2541,12 @@ void D_DoomMain (void)
 			setmodeneeded = false;			// This may be set to true here, but isn't needed for a restart
 		}
 
+        // Clamp the timer to TICRATE until the playloop has been entered.
+        r_NoInterpolate = true;
+        Page = Advisory = NULL;
+        vid_cursor.Callback();
+
+#ifndef __ANDROID__
 		try
 		{
 			D_DoomLoop ();		// never returns
@@ -2598,6 +2582,7 @@ void D_DoomMain (void)
 		}
 	}
 	while (1);
+#endif
 }
 
 //==========================================================================

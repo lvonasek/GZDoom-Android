@@ -147,15 +147,6 @@ extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_nativeInit(JNIEnv* env, jclass 
 	SDL_Android_Init(env,cls);
 }
 
-
-// Resize
-extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_onNativeResize(
-                                    JNIEnv* env, jclass jcls,
-                                    jint width, jint height, jint format)
-{
-    Android_SetScreenResolution(width, height, format);
-}
-
 // Keydown
 extern "C" void Java_com_lucidvr_gzdoom_SDLAudio_onNativeKeyDown(
                                     JNIEnv* env, jclass jcls, jint keycode)
@@ -240,30 +231,15 @@ extern "C" SDL_bool Android_JNI_CreateContext(int majorVersion, int minorVersion
         return SDL_FALSE;
     }
 }
-#include <EGL/egl.h>
 
 extern "C" void Android_JNI_SwapWindow()
 {
-	//LOGI("Android_JNI_SwapWindow %d",doSwapBuffer);
-
-	if (swapBufferCallback)
-		swapBufferCallback();
-
-	if (doSwapBuffer)
-		eglSwapBuffers( eglGetCurrentDisplay(), eglGetCurrentSurface( EGL_DRAW ) );
-
+    //dummy
 }
 
 extern "C" void Android_JNI_SetActivityTitle(const char *title)
 {
 	return;
-
-    jmethodID mid;
-
-    mid = mEnv->GetStaticMethodID(mActivityClass,"setActivityTitle","(Ljava/lang/String;)V");
-    if (mid) {
-        mEnv->CallStaticVoidMethod(mActivityClass, mid, mEnv->NewStringUTF(title));
-    }
 }
 
 extern "C" SDL_bool Android_JNI_GetAccelerometerValues(float values[3])
