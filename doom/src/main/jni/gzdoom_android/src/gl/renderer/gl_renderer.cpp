@@ -212,12 +212,6 @@ void FGLRenderer::FlushTextures()
 
 bool FGLRenderer::StartOffscreen()
 {
-	if (gl.flags & RFL_FRAMEBUFFER)
-	{
-		if (mFBID == 0) glGenFramebuffers(1, &mFBID);
-		glBindFramebuffer(GL_FRAMEBUFFER, mFBID);
-		return true;
-	}
 	return false;
 }
 
@@ -229,10 +223,6 @@ bool FGLRenderer::StartOffscreen()
 
 void FGLRenderer::EndOffscreen()
 {
-	if (gl.flags & RFL_FRAMEBUFFER)
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-	}
 }
 
 //===========================================================================
@@ -385,19 +375,23 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 		r = g = b = light;
 	}
 
+    //rescale for VR
+    if (y > 0)
+    {
+      x = SCREENWIDTH / 4 + x / 2;
+      y = SCREENHEIGHT / 4 + y / 2;
+      w /= 2;
+      h /= 2;
+    }
+
 	// scissor test doesn't use the current viewport for the coordinates, so use real screen coordinates
 	int btm = (SCREENHEIGHT - screen->GetHeight()) / 2;
 	btm = SCREENHEIGHT - btm;
 
-	glEnable(GL_SCISSOR_TEST);
 	int space = (static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight()-screen->GetHeight())/2;
     for (int pass = 0; pass <= 1; pass++)
     {
-        if ((w > 256) && (h > 256))
-            glViewport(pass * SCREENWIDTH, 0, SCREENWIDTH, SCREENHEIGHT);
-        else
-            glViewport(pass * SCREENWIDTH + SCREENWIDTH / 4, SCREENHEIGHT / 4, SCREENWIDTH / 2, SCREENHEIGHT / 2);
-        glScissor(pass * SCREENWIDTH + parms.lclip, btm - parms.dclip + space, parms.rclip - parms.lclip, parms.dclip - parms.uclip);
+        glViewport(pass * SCREENWIDTH + parms.lclip, btm - parms.dclip + space, parms.rclip - parms.lclip, parms.dclip - parms.uclip);
 
         gl_SetRenderStyle(parms.style, !parms.masked, false);
         if (img->bHasCanvas)
@@ -443,8 +437,6 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 	gl_RenderState.EnableAlphaTest(true);
 
     glViewport(0, 0, SCREENWIDTH, SCREENHEIGHT);
-	glScissor(0, 0, screen->GetWidth(), screen->GetHeight());
-	glDisable(GL_SCISSOR_TEST);
 	gl_RenderState.SetTextureMode(TM_MODULATE);
 	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	gl_RenderState.BlendEquation(GL_FUNC_ADD);
@@ -601,9 +593,10 @@ void FGLRenderer::Clear(int left, int top, int right, int bottom, int palcolor, 
 	}
 	*/
 
-	glEnable(GL_SCISSOR_TEST);
+    //dummy
+	/*glEnable(GL_SCISSOR_TEST);
     for (int pass = 0; pass <= 1; pass++) {
-        glViewport(pass * SCREENWIDTH + SCREENWIDTH / 4, SCREENHEIGHT / 4, SCREENWIDTH / 2, SCREENHEIGHT / 2);
+        glViewport(pass * SCREENWIDTH + SCREENWIDTH, 0, SCREENWIDTH, SCREENHEIGHT);
         glScissor(pass * SCREENWIDTH + left, rt - height, width, height);
 
         glClearColor(p.r / 255.0f, p.g / 255.0f, p.b / 255.0f, 0.f);
@@ -612,7 +605,7 @@ void FGLRenderer::Clear(int left, int top, int right, int bottom, int palcolor, 
     }
     glViewport(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
-	glDisable(GL_SCISSOR_TEST);
+	glDisable(GL_SCISSOR_TEST);*/
 }
 
 //==========================================================================

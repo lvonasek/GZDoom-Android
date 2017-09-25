@@ -1,28 +1,13 @@
 package com.lucidvr.gzdoom;
 
-import android.util.Log;
+import android.content.Context;
 
 class NativeLib {
 
-	static void loadLibraries()
-	{
-
-		try {
-			Log.i("JNI", "Trying to load libraries");
-
-			SDLAudio.loadSDL();
-			System.loadLibrary("fmod");
-			System.loadLibrary("openal");
-			System.loadLibrary("gzdoom");
-		}
-		catch (UnsatisfiedLinkError ule) {
-			Log.e("JNI", "WARNING: Could not load shared library: " + ule.toString());
-		}
-
-	}
-
+	public static native void createRenderer(ClassLoader appClassLoader, Context context, long gvr);
 	public static native void init(int mem,String[] args,int game,String path);
-	public static native void loop();
+	public static native void initGL();
+	public static native boolean loop();
 
 	public static native void keypress(int down, int qkey, int unicode);
 	public static native void doAction(int state, int action);

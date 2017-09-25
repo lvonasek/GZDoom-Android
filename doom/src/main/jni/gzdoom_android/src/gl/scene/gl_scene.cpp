@@ -62,6 +62,7 @@
 #include "gl/system/gl_framebuffer.h"
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_lightdata.h"
+#include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_renderstate.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
@@ -75,6 +76,10 @@
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
+
+#ifdef ANDROID
+#include "in_android.h"
+#endif
 
 //==========================================================================
 //
@@ -181,11 +186,6 @@ void FGLRenderer::SetViewport(GL_IRECT *bounds)
 		glViewport(viewportOffset, 0, SCREENWIDTH, SCREENHEIGHT);
 	else
 		glViewport(viewportOffset + bounds->left, bounds->top, bounds->width, bounds->height);
-
-	int viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	glScissor(viewport[0], viewport[1], viewport[2], viewport[3]);
-	glEnable(GL_SCISSOR_TEST);
 
 	#ifdef _DEBUG
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
@@ -889,10 +889,6 @@ void FGLRenderer::RenderView (player_t* player)
 
 	P_FindParticleSubsectors ();
 
-	// prepare all camera textures that have been used in the last frame
-	FCanvasTextureInfo::UpdateAll();
-
-
 	// I stopped using BaseRatioSizes here because the information there wasn't well presented.
 	#define RMUL (1.6f/1.333333f)
 	//							4:3				16:9		16:10		17:10		5:4
@@ -1103,6 +1099,7 @@ void FGLInterface::ClearBuffer(int color)
 
 void FGLInterface::WriteSavePic (player_t *player, FILE *file, int width, int height)
 {
+    viewportOffset = 0;
 	GLRenderer->WriteSavePic(player, file, width, height);
 }
 
@@ -1118,6 +1115,14 @@ void FGLInterface::RenderView(player_t *player)
         viewportOffset = pass * SCREENWIDTH;
         GLRenderer->RenderView(player);
     }
+
+    /*preprocess();
+    draw3D(true);
+    //GLRenderer->RenderView(player);
+    draw3D(false);
+    //GLRenderer->RenderView(player);
+    postprocess();
+    finish();*/
 }
 
 //===========================================================================
@@ -1141,67 +1146,6 @@ extern TexFilter_s TexFilter[];
 
 void FGLInterface::RenderTextureView (FCanvasTexture *tex, AActor *Viewpoint, int FOV)
 {
-	FMaterial * gltex = FMaterial::ValidateTexture(tex);
-
-	int width = gltex->TextureWidth(GLUSE_TEXTURE);
-	int height = gltex->TextureHeight(GLUSE_TEXTURE);
-
-	gl_fixedcolormap=CM_DEFAULT;
-
-	bool usefb;
-
-	if (gl.flags & RFL_FRAMEBUFFER)
-	{
-		usefb = gl_usefb || width > screen->GetWidth() || height > screen->GetHeight();
-	}
-	else usefb = false;
-
-
-	if (!usefb)
-	{
-		glFlush();
-	}
-	else
-	{
-#if defined(_WIN32) && (defined(_MSC_VER) || defined(__INTEL_COMPILER))
-		__try
-#endif
-		{
-			GLRenderer->StartOffscreen();
-			gltex->BindToFrameBuffer();
-		}
-#if defined(_WIN32) && (defined(_MSC_VER) || defined(__INTEL_COMPILER))
-		__except(1)
-		{
-			usefb = false;
-			gl_usefb = false;
-			GLRenderer->EndOffscreen();
-			glFlush();
-		}
-#endif
-	}
-
-	GL_IRECT bounds;
-	bounds.left=bounds.top=0;
-	bounds.width=FHardwareTexture::GetTexDimension(gltex->GetWidth(GLUSE_TEXTURE));
-	bounds.height=FHardwareTexture::GetTexDimension(gltex->GetHeight(GLUSE_TEXTURE));
-
-	GLRenderer->RenderViewpoint(Viewpoint, &bounds, FOV, (float)width/height, (float)width/height, false, false);
-
-	if (!usefb)
-	{
-		glFlush();
-		gltex->Bind(CM_DEFAULT, 0, 0);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.width, bounds.height);
-	}
-	else
-	{
-		GLRenderer->EndOffscreen();
-	}
-
-	gltex->Bind(CM_DEFAULT, 0, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
-	tex->SetUpdated();
 }
 
 //==========================================================================

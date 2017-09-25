@@ -1,11 +1,19 @@
+#include "in_android.h"
 
+bool game_active = true;
 
 extern int main_android (int argc, char **argv);
 extern void loop_android();
 
-
-
-#include "in_android.h"
+std::unique_ptr<gvr::GvrApi> gvr_api_;
+std::unique_ptr<gvr::BufferViewportList> viewport_list_;
+std::unique_ptr<gvr::SwapChain> swapchain_;
+gvr::BufferViewport viewport_left_;
+gvr::BufferViewport viewport_right_;
+gvr::Sizei render_size_;
+gvr::Sizei reticle_render_size_;
+gvr::Frame frame_;
+gvr::Mat4f head_view_;
 
 #include <signal.h>
 #include <stdlib.h>
@@ -72,6 +80,8 @@ extern void loop_android();
 #include "r_data/colormaps.h"
 
 #include <android/log.h>
+#include <cmath>
+#include <GLES2/gl2.h>
 //#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO,"JNI", __VA_ARGS__))
 //#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "JNI", __VA_ARGS__))
 //#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR,"JNI", __VA_ARGS__))
@@ -341,8 +351,9 @@ void PortableInit(int argc,const char ** argv){
 	main_android(argc,(char **)argv);
 }
 
-void PortableLoop(){
-	loop_android();
+bool PortableLoop(){
+    loop_android();
+    return game_active;
 }
 
 extern bool		automapactive;
@@ -424,5 +435,154 @@ void Android_IN_Move(ticcmd_t* cmd )
 	}
 }
 
+gvr::Rectf ModulateRect(const gvr::Rectf& rect, float width, float height) {
+    gvr::Rectf result = {rect.left * width, rect.right * width, rect.bottom * height, rect.top * height};
+    return result;
+}
 
+gvr::Recti CalculatePixelSpaceRect(const gvr::Sizei& texture_size, const gvr::Rectf& texture_rect) {
+    const float width = static_cast<float>(texture_size.width);
+    const float height = static_cast<float>(texture_size.height);
+    const gvr::Rectf rect = ModulateRect(texture_rect, width, height);
+    const gvr::Recti result = {
+            static_cast<int>(rect.left), static_cast<int>(rect.right),
+            static_cast<int>(rect.bottom), static_cast<int>(rect.top)};
+    return result;
+}
 
+gvr::Sizei HalfPixelCount(const gvr::Sizei& in) {
+    // Scale each dimension by sqrt(2)/2 ~= 7/10ths.
+    gvr::Sizei out;
+    out.width = (7 * in.width) / 10;
+    out.height = (7 * in.height) / 10;
+    return out;
+}
+
+gvr::Mat4f PerspectiveMatrixFromView(const gvr::Rectf& fov, float z_near, float z_far) {
+    gvr::Mat4f result;
+    const float x_left = -std::tan(fov.left * M_PI / 180.0f) * z_near;
+    const float x_right = std::tan(fov.right * M_PI / 180.0f) * z_near;
+    const float y_bottom = -std::tan(fov.bottom * M_PI / 180.0f) * z_near;
+    const float y_top = std::tan(fov.top * M_PI / 180.0f) * z_near;
+    const float zero = 0.0f;
+
+    assert(x_left < x_right && y_bottom < y_top && z_near < z_far && z_near > zero && z_far > zero);
+    const float X = (2 * z_near) / (x_right - x_left);
+    const float Y = (2 * z_near) / (y_top - y_bottom);
+    const float A = (x_right + x_left) / (x_right - x_left);
+    const float B = (y_top + y_bottom) / (y_top - y_bottom);
+    const float C = (z_near + z_far) / (z_near - z_far);
+    const float D = (2 * z_near * z_far) / (z_near - z_far);
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            result.m[i][j] = 0.0f;
+        }
+    }
+    result.m[0][0] = X;
+    result.m[0][2] = A;
+    result.m[1][1] = Y;
+    result.m[1][2] = B;
+    result.m[2][2] = C;
+    result.m[2][3] = D;
+    result.m[3][2] = -1;
+
+    return result;
+}
+
+void createRenderer(long native_gvr_api)
+{
+    gvr_api_ = gvr::GvrApi::WrapNonOwned(reinterpret_cast<gvr_context *>(native_gvr_api));
+    viewport_left_ = gvr_api_->CreateBufferViewport();
+    viewport_right_= gvr_api_->CreateBufferViewport();
+    reticle_render_size_ = {128, 128};
+}
+
+void initGL()
+{
+    gvr_api_->InitializeGl();
+    render_size_ = HalfPixelCount(gvr_api_->GetMaximumEffectiveRenderTargetSize());
+    std::vector<gvr::BufferSpec> specs;
+
+    specs.push_back(gvr_api_->CreateBufferSpec());
+    specs[0].SetColorFormat(GVR_COLOR_FORMAT_RGBA_8888);
+    specs[0].SetDepthStencilFormat(GVR_DEPTH_STENCIL_FORMAT_DEPTH_24_STENCIL_8);
+    specs[0].SetSamples(2);
+    specs[0].SetSize(render_size_);
+
+    specs.push_back(gvr_api_->CreateBufferSpec());
+    specs[1].SetSize(reticle_render_size_);
+    specs[1].SetColorFormat(GVR_COLOR_FORMAT_RGBA_8888);
+    specs[1].SetDepthStencilFormat(GVR_DEPTH_STENCIL_FORMAT_DEPTH_24_STENCIL_8);
+    specs[1].SetSamples(1);
+    swapchain_.reset(new gvr::SwapChain(gvr_api_->CreateSwapChain(specs)));
+    viewport_list_.reset(new gvr::BufferViewportList(gvr_api_->CreateEmptyBufferViewportList()));
+}
+
+void preprocess()
+{
+    // Because we are using 2X MSAA, we can render to half as many pixels and
+    // achieve similar quality.
+    const gvr::Sizei recommended_size = HalfPixelCount(gvr_api_->GetMaximumEffectiveRenderTargetSize());
+    if (render_size_.width != recommended_size.width || render_size_.height != recommended_size.height) {
+        // We need to resize the framebuffer.
+        swapchain_->ResizeBuffer(0, recommended_size);
+        render_size_ = recommended_size;
+    }
+
+    frame_ = swapchain_->AcquireFrame();
+
+    // A client app does its rendering here.
+    gvr::ClockTimePoint target_time = gvr::GvrApi::GetTimePointNow();
+    gvr::BufferViewport* viewport[2] = { &viewport_left_, &viewport_right_, };
+    head_view_ = gvr_api_->GetHeadSpaceFromStartSpaceRotation(target_time);
+    viewport_list_->SetToRecommendedBufferViewports();
+
+    gvr::Mat4f eye_views[2];
+    for (int eye = 0; eye < 2; ++eye) {
+        const gvr::Eye gvr_eye = eye == 0 ? GVR_LEFT_EYE : GVR_RIGHT_EYE;
+        const gvr::Mat4f eye_from_head = gvr_api_->GetEyeFromHeadMatrix(gvr_eye);
+        viewport_list_->GetBufferViewport(eye, viewport[eye]);
+        const gvr_rectf fov = viewport[eye]->GetSourceFov();
+        const gvr::Mat4f perspective = PerspectiveMatrixFromView(fov, 1, 10000);
+    }
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_BLEND);
+
+    // Draw the world.
+    frame_.BindBuffer(0);
+    glClearColor(0.1f, 0.1f, 0.1f, 0.5f);  // Dark background so text shows up.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
+
+void draw3D(bool left)
+{
+    const gvr::BufferViewport& viewport = left ? viewport_left_ : viewport_right_;
+    const gvr::Recti pixel_rect = CalculatePixelSpaceRect(render_size_, viewport.GetSourceUv());
+    glViewport(pixel_rect.left, pixel_rect.bottom,
+               pixel_rect.right - pixel_rect.left,
+               pixel_rect.top - pixel_rect.bottom);
+}
+
+void postprocess()
+{
+    frame_.Unbind();
+
+    frame_.BindBuffer(1);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);  // Transparent background.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    frame_.Unbind();
+}
+
+void finish()
+{
+    frame_.Submit(*viewport_list_, head_view_);
+}
+
+void kill_game()
+{
+    game_active = false;
+}

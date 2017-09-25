@@ -4,7 +4,9 @@
 #include <unistd.h>
 #include <GLES/gl.h>
 #include <string>
+#include <memory>
 
+#include "in_android.h"
 
 #include "SDL_android_extra.h"
 
@@ -73,11 +75,22 @@ JAVA_FUNC(init) ( JNIEnv* env,	jobject thiz,jint audio_rate,jobjectArray argsArr
 	PortableInit(argc,argv); //Never returns!!
 }
 
-void EXPORT_ME
+jboolean EXPORT_ME
 JAVA_FUNC(loop) ( JNIEnv* env,	jobject thiz )
 {
-    PortableLoop();
+    return PortableLoop();
 }
+
+void EXPORT_ME
+JAVA_FUNC(createRenderer) (JNIEnv *env, jclass clazz, jobject class_loader, jobject android_context, jlong native_gvr_api) {
+    createRenderer(native_gvr_api);
+}
+
+void EXPORT_ME
+JAVA_FUNC(initGL) (JNIEnv *env, jclass clazz) {
+    initGL();
+}
+
 
 __attribute__((visibility("default"))) jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {

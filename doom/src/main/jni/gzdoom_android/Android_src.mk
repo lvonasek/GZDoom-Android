@@ -1,9 +1,8 @@
 LOCAL_PATH := $(call my-dir)/src
 
-
 include $(CLEAR_VARS)
 
-
+LOCAL_CFLAGS := -std=c++11
 LOCAL_MODULE    := gzdoom
 
 #-DNO_FMOD
@@ -35,6 +34,7 @@ $(TOP_DIR)/../../Serial/jni \
  $(GZDOOM_TOP_PATH)/src/g_shared \
 $(TOP_DIR)/openal-soft-android/include \
 $(TOP_DIR)/FMOD_studio/api/lowlevel/inc \
+$(TOP_DIR)/gvr/include \
 $(TOP_DIR)/jpeg8d/include \
 $(TOP_DIR)/fluidsynth/include_from_prboom \
 
@@ -415,9 +415,7 @@ MAIN_SRC_FILES = \
 	oplsynth/dosbox/opl.cpp \
 	oplsynth/OPL3.cpp \
 	sound/music_mus_opl.cpp \
-	zzautozend.cpp \ 
-
-
+	zzautozend.cpp \
 
 LOCAL_SRC_FILES = $(PLT_SRC_FILES)  $(MAIN_SRC_FILES)
 
@@ -427,14 +425,7 @@ LOCAL_LDLIBS := -lGLESv1_CM -ldl -llog -lOpenSLES -lz
 LOCAL_LDLIBS += -fuse-ld=bfd
 LOCAL_LDLIBS +=  -lEGL
 LOCAL_STATIC_LIBRARIES := nanogl fluidsynth-static jpeg_static lzma_dev gdtoa_dev dumb_dev gme_dev bzip2_dev
-LOCAL_SHARED_LIBRARIES := fmod openal SDL
+LOCAL_SHARED_LIBRARIES := fmod openal SDL gvr
+
 #fmod
 include $(BUILD_SHARED_LIBRARY)
-
-
-
-
-
-
-
-

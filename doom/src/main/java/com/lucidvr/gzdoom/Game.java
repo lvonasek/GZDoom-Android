@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.google.vr.ndk.base.GvrLayout;
+import com.google.vr.sdk.base.AndroidCompat;
 import com.lucidvr.sdk.AbstractActivity;
 import com.lucidvr.sdk.DaydreamController;
 
@@ -15,10 +17,18 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class Game extends AbstractActivity implements GLSurfaceView.Renderer
 {
+  static
+  {
+    SDLAudio.loadSDL();
+    System.loadLibrary("fmod");
+    System.loadLibrary("gvr");
+    System.loadLibrary("openal");
+    System.loadLibrary("gzdoom");
+  }
+
   private String args;
   private String gamePath;
 
-  private GLSurfaceView mGLSurfaceView = null;
   private boolean mInitialized = false;
   private boolean SDLinited = false;
   private boolean doomInit = false;
@@ -55,14 +65,18 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
     if (!dir.exists())
       Utils.copyAsset(this, "zdoom.ini", dir.getAbsolutePath());
 
-    //Set OpenGL
-    NativeLib.loadLibraries();
-    mGLSurfaceView = new GLSurfaceView(this);
-    mGLSurfaceView.setRenderer(this);
-    mGLSurfaceView.setKeepScreenOn(true);
-    setContentView(mGLSurfaceView);
-    mGLSurfaceView.requestFocus();
-    mGLSurfaceView.setFocusableInTouchMode(true);
+    // Initialize GvrLayout and the native renderer.
+    GvrLayout gvrLayout = new GvrLayout(this);
+    GLSurfaceView surfaceView = new GLSurfaceView(this);
+    surfaceView.setEGLConfigChooser(8, 8, 8, 8, 24, 8);
+    surfaceView.setPreserveEGLContextOnPause(true);
+    surfaceView.setRenderer(this);
+    gvrLayout.setPresentationView(surfaceView);
+    setContentView(gvrLayout);
+    NativeLib.createRenderer(getClass().getClassLoader(), getApplicationContext(), gvrLayout.getGvrApi().getNativeGvrContext());
+    if (gvrLayout.setAsyncReprojectionEnabled(true))
+      AndroidCompat.setSustainedPerformanceMode(this, true);
+    AndroidCompat.setVrModeEnabled(this, true);
   }
 
   @Override
@@ -113,7 +127,6 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
     SDLAudio.onResume();
     SDLAudio.nativeResume();
     super.onResume();
-    mGLSurfaceView.onResume();
   }
 
 
@@ -126,6 +139,7 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
 
   public void onSurfaceCreated(GL10 gl, EGLConfig config)
   {
+    NativeLib.initGL();
   }
 
   public void onDrawFrame(GL10 gl)
@@ -135,7 +149,8 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
 
     if (doomInit)
     {
-      NativeLib.loop();
+      if (!NativeLib.loop())
+        finish();
     } else {
       String gzdoom_args = "-width " + surfaceWidth + " -height " + surfaceHeight + " +set vid_renderer 1 ";
       String[] args_array = Utils.creatArgs(args + gzdoom_args);

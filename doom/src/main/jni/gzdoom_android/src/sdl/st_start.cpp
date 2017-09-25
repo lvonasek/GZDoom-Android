@@ -37,12 +37,14 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <csignal>
 #include <termios.h>
 
 #include "st_start.h"
 #include "doomdef.h"
 #include "i_system.h"
 #include "c_cvars.h"
+#include "in_android.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -350,5 +352,5 @@ bool FTTYStartupScreen::NetLoop(bool (*timer_callback)(void *), void *userdata)
 void ST_Endoom()
 {
 	I_ShutdownJoysticks();
-	exit(0);
+    kill_game();
 }
