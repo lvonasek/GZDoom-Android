@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <gvr/include/vr/gvr/capi/include/gvr.h>
 #include "beloko_common/port_act_defs.h"
 
 #ifdef __cplusplus
@@ -40,12 +39,6 @@ int PortableShowKeyboard(void);
 
 touchscreemode_t PortableGetScreenMode();
 
-void createRenderer(long native_gvr_api);
-void initGL();
-void preprocess();
-void draw3D(bool left);
-void postprocess();
-void finish();
 void kill_game();
 
 #ifdef __cplusplus

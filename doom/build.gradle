@@ -2,10 +2,10 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.0"
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 24
         targetSdkVersion 26
 
         ndk {
@@ -22,5 +22,6 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.google.vr:sdk-base:1.80.0'
+    compile 'com.google.vr:sdk-base:1.100.0'
+    compile 'com.google.vr:sdk-controller:1.100.0'
 }

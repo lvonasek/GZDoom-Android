@@ -1,27 +1,28 @@
 package com.lucidvr.gzdoom;
 
-import android.opengl.GLSurfaceView;
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.google.vr.ndk.base.GvrLayout;
 import com.google.vr.sdk.base.AndroidCompat;
-import com.lucidvr.sdk.AbstractActivity;
-import com.lucidvr.sdk.DaydreamController;
+import com.google.vr.sdk.base.Eye;
+import com.google.vr.sdk.base.GvrView;
+import com.google.vr.sdk.base.HeadTransform;
+import com.google.vr.sdk.base.Viewport;
+import com.google.vr.sdk.controller.Controller;
+import com.google.vr.sdk.controller.ControllerManager;
 
 import java.io.File;
 
 import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
 
-public class Game extends AbstractActivity implements GLSurfaceView.Renderer
+public class Game extends Activity implements GvrView.StereoRenderer
 {
   static
   {
     SDLAudio.loadSDL();
     System.loadLibrary("fmod");
-    System.loadLibrary("gvr");
     System.loadLibrary("openal");
     System.loadLibrary("gzdoom");
   }
@@ -29,10 +30,12 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
   private String args;
   private String gamePath;
 
-  private boolean mInitialized = false;
   private boolean SDLinited = false;
   private boolean doomInit = false;
   private int surfaceWidth = -1, surfaceHeight;
+
+  private ControllerManager controllerManager;
+  private HeadTransform mHead;
 
   /**
    * Called when the activity is first created.
@@ -65,45 +68,14 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
     if (!dir.exists())
       Utils.copyAsset(this, "zdoom.ini", dir.getAbsolutePath());
 
-    // Initialize GvrLayout and the native renderer.
-    GvrLayout gvrLayout = new GvrLayout(this);
-    GLSurfaceView surfaceView = new GLSurfaceView(this);
-    surfaceView.setEGLConfigChooser(8, 8, 8, 8, 24, 8);
-    surfaceView.setPreserveEGLContextOnPause(true);
-    surfaceView.setRenderer(this);
-    gvrLayout.setPresentationView(surfaceView);
-    setContentView(gvrLayout);
-    NativeLib.createRenderer(getClass().getClassLoader(), getApplicationContext(), gvrLayout.getGvrApi().getNativeGvrContext());
-    if (gvrLayout.setAsyncReprojectionEnabled(true))
-      AndroidCompat.setSustainedPerformanceMode(this, true);
+    GvrView gvrView = new com.google.vr.sdk.base.GvrView(this);
+    gvrView.setEGLConfigChooser(8, 8, 8, 8, 24, 8);
+    gvrView.setEGLContextClientVersion(1);
+    gvrView.setRenderer(this);
+    gvrView.setTransitionViewEnabled(true);
+    setContentView(gvrView);
+
     AndroidCompat.setVrModeEnabled(this, true);
-  }
-
-  @Override
-  protected void onAddressChanged(String address)
-  {
-  }
-
-  @Override
-  protected void onConnectionChanged(boolean on)
-  {
-    int code = 0x205;
-    NativeLib.doAction(1, code);
-    NativeLib.doAction(0, code);
-  }
-
-  @Override
-  protected void onDataReceived()
-  {
-    float[] angles = new float[3];
-    getTransform().getEulerAngles(angles, 0);
-    VRController.update(DaydreamController.getStatus(), angles);
-  }
-
-  @Override
-  protected void onInitFinished()
-  {
-    mInitialized = true;
   }
 
   @Override
@@ -137,18 +109,68 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
     System.exit(0);
   }
 
-  public void onSurfaceCreated(GL10 gl, EGLConfig config)
-  {
-    NativeLib.initGL();
+  @Override
+  protected void onStart() {
+    super.onStart();
+    controllerManager = new ControllerManager(this, new ControllerManager.EventListener()
+    {
+      @Override
+      public void onApiStatusChanged(int i)
+      {
+      }
+
+      @Override
+      public void onRecentered()
+      {
+        int code = 0x205;
+        NativeLib.doAction(1, code);
+        NativeLib.doAction(0, code);
+      }
+    });
+    controllerManager.start();
   }
 
-  public void onDrawFrame(GL10 gl)
-  {
-    if (!mInitialized)
-      return;
+  @Override
+  protected void onStop() {
+    controllerManager.stop();
+    controllerManager = null;
+    super.onStop();
+  }
 
+  @Override
+  public void onNewFrame(HeadTransform headTransform)
+  {
+    mHead = headTransform;
+  }
+
+  @Override
+  public void onDrawEye(Eye eye)
+  {
+  }
+
+  @Override
+  public void onFinishFrame(Viewport viewport)
+  {
     if (doomInit)
     {
+      runOnUiThread(new Runnable()
+      {
+        @Override
+        public void run()
+        {
+          //get head status
+          float[] angles = new float[3];
+          mHead.getEulerAngles(angles, 0);
+          //update controller
+          if (controllerManager != null)
+          {
+            Controller controller = controllerManager.getController();
+            controller.update();
+            VRController.update(controller, angles);
+          }
+        }
+      });
+      //render
       if (!NativeLib.loop())
         finish();
     } else {
@@ -159,11 +181,12 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
     }
   }
 
-  public void onSurfaceChanged(GL10 gl, int width, int height)
+  @Override
+  public void onSurfaceChanged(int width, int height)
   {
     if (surfaceWidth == -1)
     {
-      surfaceWidth = width;
+      surfaceWidth = width * 2;
       surfaceHeight = height;
     }
 
@@ -172,5 +195,17 @@ public class Game extends AbstractActivity implements GLSurfaceView.Renderer
       SDLAudio.nativeInit(false);
       SDLinited = true;
     }
+  }
+
+  @Override
+  public void onSurfaceCreated(EGLConfig eglConfig)
+  {
+
+  }
+
+  @Override
+  public void onRendererShutdown()
+  {
+
   }
 }

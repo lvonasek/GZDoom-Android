@@ -4,17 +4,6 @@
     android:versionCode="1"
     android:versionName="0.0.1" >
 
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
-
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.NFC" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-
     <application
         android:label="@string/app_name"
         android:icon="@drawable/launch"
@@ -36,9 +25,7 @@
             android:name=".Game"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleTop"
-            android:screenOrientation="sensorLandscape"
-            >
+            android:screenOrientation="sensorLandscape">
         </activity>
-        <service android:name="com.lucidvr.sdk.BluetoothLeService" android:enabled="true"/>
     </application>
 </manifest>

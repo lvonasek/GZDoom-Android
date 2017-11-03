@@ -171,7 +171,7 @@ void FGLRenderer::SetViewArea()
 
 void FGLRenderer::ResetViewport()
 {
-	glViewport(viewportOffset, 0, screen->GetWidth(), screen->GetHeight());
+	//glViewport(viewportOffset, 0, screen->GetWidth(), screen->GetHeight());
 }
 
 //-----------------------------------------------------------------------------
@@ -1115,14 +1115,6 @@ void FGLInterface::RenderView(player_t *player)
         viewportOffset = pass * SCREENWIDTH;
         GLRenderer->RenderView(player);
     }
-
-    /*preprocess();
-    draw3D(true);
-    //GLRenderer->RenderView(player);
-    draw3D(false);
-    //GLRenderer->RenderView(player);
-    postprocess();
-    finish();*/
 }
 
 //===========================================================================

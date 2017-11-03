@@ -81,17 +81,6 @@ JAVA_FUNC(loop) ( JNIEnv* env,	jobject thiz )
     return PortableLoop();
 }
 
-void EXPORT_ME
-JAVA_FUNC(createRenderer) (JNIEnv *env, jclass clazz, jobject class_loader, jobject android_context, jlong native_gvr_api) {
-    createRenderer(native_gvr_api);
-}
-
-void EXPORT_ME
-JAVA_FUNC(initGL) (JNIEnv *env, jclass clazz) {
-    initGL();
-}
-
-
 __attribute__((visibility("default"))) jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
 	LOGI("JNI_OnLoad");

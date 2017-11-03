@@ -1,32 +1,51 @@
 package com.lucidvr.gzdoom;
 
-import android.util.SparseIntArray;
-
-import com.lucidvr.sdk.DaydreamController;
+import com.google.vr.sdk.controller.Controller;
 
 class VRController
 {
+  private static final int PORT_ACT_MENU_UP     = 0x200;
+  private static final int PORT_ACT_MENU_DOWN   = 0x201;
+  private static final int PORT_ACT_MENU_LEFT   = 0x202;
+  private static final int PORT_ACT_MENU_RIGHT  = 0x203;
+  private static final int PORT_ACT_MENU_SELECT = 0x204;
+  private static final int PORT_ACT_MENU_BACK   = 0x205;
+  private static final int PORT_ACT_USE         = 11;
+  private static final int PORT_ACT_ATTACK      = 13;
+  private static final int PORT_ACT_NEXT_WEP    = 16;
+  private static final int PORT_ACT_PREV_WEP    = 17;
+
   private static boolean initialized = false;
   private static float pitch;
   private static float yaw;
   private static long timestamp;
+  private static int swipeX;
+  private static int swipeY;
+  private static int touchInitX;
+  private static int touchInitY;
 
-  public static void update(SparseIntArray data, float[] head)
+  public static void update(Controller controller, float[] head)
   {
-    int PORT_ACT_MENU_UP     = 0x200;
-    int PORT_ACT_MENU_DOWN   = 0x201;
-    int PORT_ACT_MENU_LEFT   = 0x202;
-    int PORT_ACT_MENU_RIGHT  = 0x203;
-    int PORT_ACT_MENU_SELECT = 0x204;
-    int PORT_ACT_MENU_BACK   = 0x205;
-    int PORT_ACT_USE         = 11;
-    int PORT_ACT_ATTACK      = 13;
-    int PORT_ACT_NEXT_WEP    = 16;
-    int PORT_ACT_PREV_WEP    = 17;
+    //detect swipe
+    int touchX = (int) (controller.touch.x * 255);
+    int touchY = (int) (controller.touch.y * 255);
+    if (!controller.isTouching)
+    {
+      swipeX = 0;
+      swipeY = 0;
+      touchInitX = 0;
+      touchInitY = 0;
+    } else if ((touchInitX == 0) && (touchInitY == 0)) {
+      touchInitX = touchX;
+      touchInitY = touchY;
+    } else {
+      swipeX = touchX - touchInitX;
+      swipeY = touchY - touchInitY;
+    }
 
     //touchpad - walking
-    int x = data.get(DaydreamController.SWP_X);
-    int y = data.get(DaydreamController.SWP_Y);
+    int x = swipeX;
+    int y = swipeY;
     if (Math.abs(x) < 25)
       x = 0;
     if (Math.abs(y) < 25)
@@ -56,28 +75,26 @@ class VRController
     }
 
     //touchpad - menu
-    if (data.get(DaydreamController.SWP_X) > 50)
+    if (swipeX > 50)
       sendActionEvent(PORT_ACT_MENU_RIGHT);
-    if (data.get(DaydreamController.SWP_X) < -50)
+    if (swipeX < -50)
       sendActionEvent(PORT_ACT_MENU_LEFT);
-    if (data.get(DaydreamController.SWP_Y) > 50)
+    if (swipeY > 50)
       sendActionEvent(PORT_ACT_MENU_DOWN);
-    if (data.get(DaydreamController.SWP_Y) < -50)
+    if (swipeY < -50)
       sendActionEvent(PORT_ACT_MENU_UP);
 
     //buttons
-    if (data.get(DaydreamController.BTN_CLICK) > 0)
+    if (controller.clickButtonState)
     {
       sendMenuEvent(PORT_ACT_MENU_SELECT);
       sendKeyEvent(PORT_ACT_ATTACK, true);
     }
-    if (data.get(DaydreamController.BTN_HOME) > 0)
-      sendMenuEvent(PORT_ACT_MENU_BACK);
-    if (data.get(DaydreamController.BTN_APP) > 0)
+    if (controller.appButtonState)
       sendKeyEvent(PORT_ACT_USE, false);
-    if (data.get(DaydreamController.BTN_VOL_UP) > 0)
+    if (controller.volumeUpButtonState)
       sendActionEvent(PORT_ACT_NEXT_WEP);
-    if (data.get(DaydreamController.BTN_VOL_DOWN) > 0)
+    if (controller.volumeDownButtonState)
       sendActionEvent(PORT_ACT_PREV_WEP);
   }
 
