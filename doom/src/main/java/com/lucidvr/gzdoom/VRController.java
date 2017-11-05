@@ -54,8 +54,8 @@ class VRController
       y = 0;
     else
       x = 0;
-    NativeLib.analogSide(x * 0.02f);
-    NativeLib.analogFwd(-y * 0.02f);
+    Game.analogSide(x * 0.02f);
+    Game.analogFwd(-y * 0.02f);
 
     //head rotation
     if(!initialized)
@@ -68,8 +68,8 @@ class VRController
       //TODO:better handling angle between 359 and 0 degrees
       if (Math.abs(gap) > Math.PI * 0.5)
         gap = 0;
-      NativeLib.analogPitch(0, (head[0] - pitch) * 0.5f);
-      NativeLib.analogYaw(0, gap * 0.25f);
+      Game.analogPitch(0, (head[0] - pitch) * 0.5f);
+      Game.analogYaw(0, gap * 0.25f);
       pitch = head[0];
       yaw = head[1];
     }
@@ -103,8 +103,8 @@ class VRController
     if (timestamp + 250 < System.currentTimeMillis())
     {
       timestamp = System.currentTimeMillis();
-      NativeLib.doAction(1, code);
-      NativeLib.doAction(0, code);
+      Game.doAction(1, code);
+      Game.doAction(0, code);
     }
   }
 
@@ -115,7 +115,7 @@ class VRController
       @Override
       public void run()
       {
-        NativeLib.doAction(1, code);
+        Game.doAction(1, code);
         try
         {
           Thread.sleep(fire ? 50 : 200);
@@ -123,7 +123,7 @@ class VRController
         {
           e.printStackTrace();
         }
-        NativeLib.doAction(0, code);
+        Game.doAction(0, code);
       }
     }).start();
   }
@@ -133,8 +133,8 @@ class VRController
     if (timestamp + 250 < System.currentTimeMillis())
     {
       timestamp = System.currentTimeMillis();
-      NativeLib.doAction(1, code);
-      NativeLib.doAction(0, code);
+      Game.doAction(1, code);
+      Game.doAction(0, code);
     }
   }
 }

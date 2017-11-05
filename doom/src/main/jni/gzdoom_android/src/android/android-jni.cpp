@@ -16,7 +16,7 @@ extern "C"
 #include "in_android.h"
 #include "SDL_keycode.h"
 
-#define JAVA_FUNC(x) Java_com_lucidvr_gzdoom_NativeLib_##x
+#define JAVA_FUNC(x) Java_com_lucidvr_gzdoom_Game_##x
 
 bool shooting = false;
 

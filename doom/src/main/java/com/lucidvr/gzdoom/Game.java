@@ -2,8 +2,6 @@ package com.lucidvr.gzdoom;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.Window;
-import android.view.WindowManager;
 
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
@@ -13,7 +11,9 @@ import com.google.vr.sdk.base.Viewport;
 import com.google.vr.sdk.controller.Controller;
 import com.google.vr.sdk.controller.ControllerManager;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 
 import javax.microedition.khronos.egl.EGLConfig;
 
@@ -26,6 +26,16 @@ public class Game extends Activity implements GvrView.StereoRenderer
     System.loadLibrary("openal");
     System.loadLibrary("gzdoom");
   }
+
+
+  static native void init(int mem,String[] args,int game,String path);
+  static native boolean loop();
+  static native void keypress(int down, int qkey, int unicode);
+  static native void doAction(int state, int action);
+  static native void analogFwd(float v);
+  static native void analogSide(float v);
+  static native void analogPitch(int mode,float v);
+  static native void analogYaw(int mode,float v);
 
   private String args;
   private String gamePath;
@@ -45,26 +55,7 @@ public class Game extends Activity implements GvrView.StereoRenderer
     args = getIntent().getStringExtra("args");
     gamePath = getIntent().getStringExtra("game_path");
 
-    // fullscreen
-    requestWindowFeature(Window.FEATURE_NO_TITLE);
-    getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-    // keep screen on
-    getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-    Utils.setImmersionMode(this);
-
-    //Extract data
-    String base = EntryActivity.getFullDir();
-    Utils.copyAsset(this, "gzdoom.pk3", base);
-    Utils.copyAsset(this, "gzdoom.sf2", base);
-    Utils.copyAsset(this, "doom1.wad", base);
-    File dir = new File(base, "gzdoom_dev");
-    if (!dir.exists())
-      Utils.copyAsset(this, "zdoom.ini", dir.getAbsolutePath());
-
+    //set GVR
     GvrView gvrView = new com.google.vr.sdk.base.GvrView(this);
     gvrView.setEGLConfigChooser(8, 8, 8, 8, 24, 8);
     gvrView.setEGLContextClientVersion(1); //TODO:GLES2
@@ -73,13 +64,6 @@ public class Game extends Activity implements GvrView.StereoRenderer
     setContentView(gvrView);
 
     AndroidCompat.setVrModeEnabled(this, true);
-  }
-
-  @Override
-  public void onWindowFocusChanged(boolean hasFocus)
-  {
-    super.onWindowFocusChanged(hasFocus);
-    Utils.onWindowFocusChanged(this, hasFocus);
   }
 
   @Override
@@ -120,8 +104,8 @@ public class Game extends Activity implements GvrView.StereoRenderer
       public void onRecentered()
       {
         int code = 0x205;
-        NativeLib.doAction(1, code);
-        NativeLib.doAction(0, code);
+        doAction(1, code);
+        doAction(0, code);
       }
     });
     controllerManager.start();
@@ -155,7 +139,12 @@ public class Game extends Activity implements GvrView.StereoRenderer
       //init doom
       SDLAudio.nativeInit(false);
       args += "-width " + (viewport.width / 2) + " -height " + viewport.height;
-      NativeLib.init(48000, Utils.creatArgs(args), 0, gamePath);
+      ArrayList<String> a = new ArrayList<>(Arrays.asList(args.split(" ")));
+      Iterator<String> iter = a.iterator();
+      while (iter.hasNext())
+        if (iter.next().contentEquals(""))
+          iter.remove();
+      init(48000, a.toArray(new String[a.size()]), 0, gamePath);
       doomInit = true;
     }
     else
@@ -180,7 +169,7 @@ public class Game extends Activity implements GvrView.StereoRenderer
       });
 
       //render
-      if (!NativeLib.loop())
+      if (!loop())
         finish();
     }
   }
