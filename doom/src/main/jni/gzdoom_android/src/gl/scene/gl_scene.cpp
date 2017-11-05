@@ -171,7 +171,7 @@ void FGLRenderer::SetViewArea()
 
 void FGLRenderer::ResetViewport()
 {
-	//glViewport(viewportOffset, 0, screen->GetWidth(), screen->GetHeight());
+	glViewport(viewportOffset, 0, screen->GetWidth(), screen->GetHeight());
 }
 
 //-----------------------------------------------------------------------------

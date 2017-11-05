@@ -29,10 +29,7 @@ public class Game extends Activity implements GvrView.StereoRenderer
 
   private String args;
   private String gamePath;
-
-  private boolean SDLinited = false;
   private boolean doomInit = false;
-  private int surfaceWidth = -1, surfaceHeight;
 
   private ControllerManager controllerManager;
   private HeadTransform mHead;
@@ -70,7 +67,7 @@ public class Game extends Activity implements GvrView.StereoRenderer
 
     GvrView gvrView = new com.google.vr.sdk.base.GvrView(this);
     gvrView.setEGLConfigChooser(8, 8, 8, 8, 24, 8);
-    gvrView.setEGLContextClientVersion(1);
+    gvrView.setEGLContextClientVersion(1); //TODO:GLES2
     gvrView.setRenderer(this);
     gvrView.setTransitionViewEnabled(true);
     setContentView(gvrView);
@@ -146,13 +143,24 @@ public class Game extends Activity implements GvrView.StereoRenderer
   @Override
   public void onDrawEye(Eye eye)
   {
+    Viewport viewport = eye.getViewport();
+    //TODO:move rendering here when it will be compatible with GLES2
   }
 
   @Override
   public void onFinishFrame(Viewport viewport)
   {
-    if (doomInit)
+    if (!doomInit)
     {
+      //init doom
+      SDLAudio.nativeInit(false);
+      args += "-width " + (viewport.width / 2) + " -height " + viewport.height;
+      NativeLib.init(48000, Utils.creatArgs(args), 0, gamePath);
+      doomInit = true;
+    }
+    else
+    {
+      //update VR state
       runOnUiThread(new Runnable()
       {
         @Override
@@ -170,42 +178,25 @@ public class Game extends Activity implements GvrView.StereoRenderer
           }
         }
       });
+
       //render
       if (!NativeLib.loop())
         finish();
-    } else {
-      String gzdoom_args = "-width " + surfaceWidth + " -height " + surfaceHeight + " +set vid_renderer 1 ";
-      String[] args_array = Utils.creatArgs(args + gzdoom_args);
-      NativeLib.init(48000, args_array, 0, gamePath);
-      doomInit = true;
     }
   }
 
   @Override
   public void onSurfaceChanged(int width, int height)
   {
-    if (surfaceWidth == -1)
-    {
-      surfaceWidth = width * 2;
-      surfaceHeight = height;
-    }
-
-    if (!SDLinited)
-    {
-      SDLAudio.nativeInit(false);
-      SDLinited = true;
-    }
   }
 
   @Override
   public void onSurfaceCreated(EGLConfig eglConfig)
   {
-
   }
 
   @Override
   public void onRendererShutdown()
   {
-
   }
 }

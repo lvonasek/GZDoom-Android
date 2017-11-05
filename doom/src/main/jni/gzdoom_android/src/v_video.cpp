@@ -830,7 +830,7 @@ void DSimpleCanvas::Unlock ()
 //==========================================================================
 
 DFrameBuffer::DFrameBuffer (int width, int height)
-	: DSimpleCanvas (width / 2, height)
+	: DSimpleCanvas (width, height)
 {
 	LastMS = LastSec = FrameCount = LastCount = LastTic = 0;
 	Accel2D = false;
