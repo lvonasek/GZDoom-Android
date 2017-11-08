@@ -19,6 +19,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 
 public class Game extends Activity implements GvrView.StereoRenderer
 {
+  private static final int GLESVERSION = 1;//TODO:2
+
   static
   {
     SDLAudio.loadSDL();
@@ -58,7 +60,7 @@ public class Game extends Activity implements GvrView.StereoRenderer
     //set GVR
     GvrView gvrView = new com.google.vr.sdk.base.GvrView(this);
     gvrView.setEGLConfigChooser(8, 8, 8, 8, 24, 8);
-    gvrView.setEGLContextClientVersion(1); //TODO:GLES2
+    gvrView.setEGLContextClientVersion(GLESVERSION);
     gvrView.setRenderer(this);
     gvrView.setTransitionViewEnabled(true);
     setContentView(gvrView);
@@ -127,12 +129,33 @@ public class Game extends Activity implements GvrView.StereoRenderer
   @Override
   public void onDrawEye(Eye eye)
   {
-    Viewport viewport = eye.getViewport();
-    //TODO:move rendering here when it will be compatible with GLES2
+    if (GLESVERSION == 2)
+      update(eye.getViewport());
   }
 
   @Override
   public void onFinishFrame(Viewport viewport)
+  {
+    if (GLESVERSION == 1)
+      update(viewport);
+  }
+
+  @Override
+  public void onSurfaceChanged(int width, int height)
+  {
+  }
+
+  @Override
+  public void onSurfaceCreated(EGLConfig eglConfig)
+  {
+  }
+
+  @Override
+  public void onRendererShutdown()
+  {
+  }
+
+  private void update(Viewport viewport)
   {
     if (!doomInit)
     {
@@ -172,20 +195,5 @@ public class Game extends Activity implements GvrView.StereoRenderer
       if (!loop())
         finish();
     }
-  }
-
-  @Override
-  public void onSurfaceChanged(int width, int height)
-  {
-  }
-
-  @Override
-  public void onSurfaceCreated(EGLConfig eglConfig)
-  {
-  }
-
-  @Override
-  public void onRendererShutdown()
-  {
   }
 }
