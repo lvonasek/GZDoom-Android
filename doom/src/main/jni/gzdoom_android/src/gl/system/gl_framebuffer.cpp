@@ -118,9 +118,9 @@ OpenGLFrameBuffer::~OpenGLFrameBuffer()
 void OpenGLFrameBuffer::InitializeState()
 {
 	static bool first=true;
-
 	gl_LoadExtensions();
 	Super::InitializeState();
+
 	if (first)
 	{
 		first=false;
@@ -131,25 +131,21 @@ void OpenGLFrameBuffer::InitializeState()
 
 	}
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClearDepth(1.0f);
 	glDepthFunc(GL_LESS);
 
 	glEnable(GL_DITHER);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_POLYGON_OFFSET_FILL);
-	glEnable(GL_POLYGON_OFFSET_LINE);
 	glEnable(GL_BLEND);
-	glEnable(GL_DEPTH_CLAMP);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
-	glDisable(GL_LINE_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	int trueH = GetTrueHeight();
 	int h = GetHeight();
-	glViewport(0, (trueH - h)/2, GetWidth(), GetHeight());
+	glViewport(0, (trueH - h)/2, GetWidth(), GetHeight()); 
 
 	Begin2D(false);
 	GLRenderer->Initialize();
@@ -368,29 +364,11 @@ FNativePalette *OpenGLFrameBuffer::CreatePalette(FRemapTable *remap)
 //==========================================================================
 bool OpenGLFrameBuffer::Begin2D(bool)
 {
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(
-		(GLdouble) 0,
-		(GLdouble) GetWidth(), 
-		(GLdouble) GetHeight(), 
-		(GLdouble) 0,
-		(GLdouble) -1.0, 
-		(GLdouble) 1.0 
-		);
-	glDisable(GL_DEPTH_TEST);
+	gl_RenderState.mViewMatrix.loadIdentity();
+	gl_RenderState.mProjectionMatrix.ortho(0, GetWidth(), GetHeight(), 0, -1.0f, 1.0f);
+	gl_RenderState.ApplyMatrices();
 
-	// Korshun: ENABLE AUTOMAP ANTIALIASING!!!
-	if (gl_aalines)
-		glEnable(GL_LINE_SMOOTH);
-	else
-	{
-		glDisable(GL_MULTISAMPLE);
-		glDisable(GL_LINE_SMOOTH);
-		glLineWidth(1.0);
-	}
+	glDisable(GL_DEPTH_TEST);
 
 	if (GLRenderer != NULL)
 			GLRenderer->Begin2D();
@@ -472,7 +450,7 @@ void OpenGLFrameBuffer::FlatFill (int left, int top, int right, int bottom, FTex
 //==========================================================================
 void OpenGLFrameBuffer::Clear(int left, int top, int right, int bottom, int palcolor, uint32 color)
 {
-	if (GLRenderer != NULL)
+	if (GLRenderer != NULL) 
 		GLRenderer->Clear(left, top, right, bottom, palcolor, color);
 }
 

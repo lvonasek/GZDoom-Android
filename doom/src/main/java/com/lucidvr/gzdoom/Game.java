@@ -2,6 +2,7 @@ package com.lucidvr.gzdoom;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.WindowManager;
 
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
@@ -19,8 +20,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 
 public class Game extends Activity implements GvrView.StereoRenderer
 {
-  private static final int GLESVERSION = 1;//TODO:2
-
   static
   {
     SDLAudio.loadSDL();
@@ -60,10 +59,11 @@ public class Game extends Activity implements GvrView.StereoRenderer
     //set GVR
     GvrView gvrView = new com.google.vr.sdk.base.GvrView(this);
     gvrView.setEGLConfigChooser(8, 8, 8, 8, 24, 8);
-    gvrView.setEGLContextClientVersion(GLESVERSION);
+    gvrView.setEGLContextClientVersion(3);
     gvrView.setRenderer(this);
     gvrView.setTransitionViewEnabled(true);
     setContentView(gvrView);
+    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     AndroidCompat.setVrModeEnabled(this, true);
   }
@@ -129,15 +129,13 @@ public class Game extends Activity implements GvrView.StereoRenderer
   @Override
   public void onDrawEye(Eye eye)
   {
-    if (GLESVERSION == 2)
-      update(eye.getViewport());
+    update(eye.getViewport());
   }
 
   @Override
   public void onFinishFrame(Viewport viewport)
   {
-    if (GLESVERSION == 1)
-      update(viewport);
+    //update(viewport);
   }
 
   @Override
@@ -161,7 +159,7 @@ public class Game extends Activity implements GvrView.StereoRenderer
     {
       //init doom
       SDLAudio.nativeInit(false);
-      args += "-width " + (viewport.width / 2) + " -height " + viewport.height;
+      args += "-width " + viewport.width + " -height " + viewport.height;
       ArrayList<String> a = new ArrayList<>(Arrays.asList(args.split(" ")));
       Iterator<String> iter = a.iterator();
       while (iter.hasNext())

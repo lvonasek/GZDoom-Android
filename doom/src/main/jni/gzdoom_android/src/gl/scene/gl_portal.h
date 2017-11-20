@@ -80,8 +80,8 @@ class GLPortal
 {
 	static TArray<GLPortal *> portals;
 	static int recursion;
-	static unsigned int QueryObject;
 protected:
+	static TArray<float> planestack;
 	static int MirrorFlag;
 	static int PlaneMirrorFlag;
 	static int renderdepth;
@@ -101,9 +101,9 @@ private:
 	angle_t savedviewangle;
 	AActor * savedviewactor;
 	area_t savedviewarea;
-	unsigned char clipsave;
 	GLPortal *NextPortal;
 	TArray<BYTE> savedmapsection;
+	TArray<unsigned int> mPrimIndices;
 
 protected:
 	TArray<GLWall> lines;
@@ -112,7 +112,7 @@ protected:
 	GLPortal() { portals.Push(this); }
 	virtual ~GLPortal() { }
 
-	bool Start(bool usestencil, bool doquery);
+	bool Start(bool usestencil);
 	void End(bool usestencil);
 	virtual void DrawContents()=0;
 	virtual void * GetSource() const =0;	// GetSource MUST be implemented!
@@ -134,12 +134,12 @@ public:
 		PClip_Behind
 	};
 
-	void RenderPortal(bool usestencil, bool doquery)
+	void RenderPortal(bool usestencil)
 	{
 		// Start may perform an occlusion query. If that returns 0 there
 		// is no need to draw the stencil's contents and there's also no
 		// need to restore the affected area becasue there is none!
-		if (Start(usestencil, doquery))
+		if (Start(usestencil))
 		{
 			DrawContents();
 			End(usestencil);
