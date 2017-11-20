@@ -214,6 +214,7 @@ void gl_LoadExtensions()
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE,&gl.max_texturesize);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+#if 0
 	if (gl.flags & RFL_GL_20)
 	{
 		glDeleteShader = (PFNGLDELETESHADERPROC)myGetProcAddress("glDeleteShader");
@@ -347,7 +348,6 @@ void gl_LoadExtensions()
 		gl.flags|=RFL_FRAMEBUFFER;
 	}
 
-#if 0
 	if (CheckExtension("GL_ARB_texture_buffer_object") && 
 			CheckExtension("GL_ARB_texture_float") &&
 			CheckExtension("GL_EXT_GPU_Shader4") &&

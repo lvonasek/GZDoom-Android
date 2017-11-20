@@ -418,7 +418,7 @@ MAIN_SRC_FILES = \
 
 LOCAL_SRC_FILES = $(PLT_SRC_FILES)  $(MAIN_SRC_FILES)
 
-LOCAL_LDLIBS := -lGLESv1_CM -ldl -llog -lOpenSLES -lz
+LOCAL_LDLIBS := -lGLESv1_CM -lGLESv2 -ldl -llog -lOpenSLES -lz
 
 
 LOCAL_LDLIBS += -fuse-ld=bfd
