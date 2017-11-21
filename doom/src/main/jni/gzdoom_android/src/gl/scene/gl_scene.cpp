@@ -369,7 +369,12 @@ void FGLRenderer::RenderScene(int recursion)
 	gl_RenderState.AlphaFunc(GL_GEQUAL, 0.f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
-	int pass = GLPASS_PLAIN;
+	int pass;
+
+	{
+		pass = GLPASS_PLAIN;
+	}
+
 	gl_RenderState.EnableTexture(gl_texture);
 	gl_RenderState.EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_PLAINWALLS].DrawWalls(pass);

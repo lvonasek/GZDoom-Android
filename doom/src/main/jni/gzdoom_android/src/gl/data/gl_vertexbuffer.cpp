@@ -90,8 +90,10 @@ void FVertexBuffer::BindVBO()
 FFlatVertexBuffer::FFlatVertexBuffer()
 : FVertexBuffer()
 {
-	vbo_shadowdata.Reserve(BUFFER_SIZE);
-	map = &vbo_shadowdata[0];
+	{
+		vbo_shadowdata.Reserve(BUFFER_SIZE);
+		map = &vbo_shadowdata[0];
+	}
 	mNumReserved = mIndex = mCurIndex = 0;
 }
 
@@ -110,6 +112,13 @@ FFlatVertexBuffer::~FFlatVertexBuffer()
 
 void FFlatVertexBuffer::ImmRenderBuffer(unsigned int primtype, unsigned int offset, unsigned int count)
 {
+    glEnableVertexAttribArray(VATTR_VERTEX);
+    glEnableVertexAttribArray(VATTR_TEXCOORD);
+    glVertexAttribPointer(VATTR_VERTEX, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &map[offset].x);
+    glVertexAttribPointer(VATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &map[offset].u);
+    glDrawArrays(primtype, 0, (GLsizei) count);
+    glDisableVertexAttribArray(VATTR_VERTEX);
+    glDisableVertexAttribArray(VATTR_TEXCOORD);
 }
 
 //==========================================================================

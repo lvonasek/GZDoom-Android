@@ -275,5 +275,9 @@ void FRenderState::ApplyMatrices()
 
 void FRenderState::ApplyLightIndex(int index)
 {
+	if (GLRenderer->mLights->GetBufferType() == GL_UNIFORM_BUFFER && index > -1)
+	{
+		index = GLRenderer->mLights->BindUBO(index);
+	}
 	activeShader->muLightIndex.Set(index);
 }

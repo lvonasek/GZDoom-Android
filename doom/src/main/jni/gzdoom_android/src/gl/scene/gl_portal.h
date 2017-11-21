@@ -80,6 +80,7 @@ class GLPortal
 {
 	static TArray<GLPortal *> portals;
 	static int recursion;
+	static unsigned int QueryObject;
 protected:
 	static TArray<float> planestack;
 	static int MirrorFlag;
@@ -112,7 +113,7 @@ protected:
 	GLPortal() { portals.Push(this); }
 	virtual ~GLPortal() { }
 
-	bool Start(bool usestencil);
+	bool Start(bool usestencil, bool doquery);
 	void End(bool usestencil);
 	virtual void DrawContents()=0;
 	virtual void * GetSource() const =0;	// GetSource MUST be implemented!
@@ -134,12 +135,12 @@ public:
 		PClip_Behind
 	};
 
-	void RenderPortal(bool usestencil)
+	void RenderPortal(bool usestencil, bool doquery)
 	{
 		// Start may perform an occlusion query. If that returns 0 there
 		// is no need to draw the stencil's contents and there's also no
 		// need to restore the affected area becasue there is none!
-		if (Start(usestencil))
+		if (Start(usestencil, doquery))
 		{
 			DrawContents();
 			End(usestencil);

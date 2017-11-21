@@ -60,6 +60,10 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
 
+#define GL_CLIP_DISTANCE0 0x3000
+#define GL_CLIP_DISTANCE1 0x3001
+#define GL_DEPTH_CLAMP 0x864F
+
 typedef unsigned char 	byte;
 typedef float		FLOAT;
 template <typename T>

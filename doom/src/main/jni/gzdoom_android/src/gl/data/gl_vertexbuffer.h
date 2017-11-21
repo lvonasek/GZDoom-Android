@@ -83,7 +83,9 @@ public:
 	void RenderArray(unsigned int primtype, unsigned int offset, unsigned int count)
 	{
 		drawcalls.Clock();
-		ImmRenderBuffer(primtype, offset, count);
+		{
+			ImmRenderBuffer(primtype, offset, count);
+		}
 		drawcalls.Unclock();
 	}
 

@@ -131,12 +131,14 @@ void OpenGLFrameBuffer::InitializeState()
 
 	}
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepthf(1.0f);
 	glDepthFunc(GL_LESS);
 
 	glEnable(GL_DITHER);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 	glEnable(GL_BLEND);
+	glEnable(GL_DEPTH_CLAMP);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -369,7 +371,6 @@ bool OpenGLFrameBuffer::Begin2D(bool)
 	gl_RenderState.ApplyMatrices();
 
 	glDisable(GL_DEPTH_TEST);
-
 	if (GLRenderer != NULL)
 			GLRenderer->Begin2D();
 	return true;

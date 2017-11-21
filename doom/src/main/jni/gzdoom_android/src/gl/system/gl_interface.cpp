@@ -156,6 +156,7 @@ void gl_LoadExtensions()
 
 void gl_PrintStartupLog()
 {
+	int v;
 	Printf ("GL_VENDOR: %s\n", glGetString(GL_VENDOR));
 	Printf ("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
 	Printf ("GL_SHADING_LANGUAGE_VERSION: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -165,7 +166,6 @@ void gl_PrintStartupLog()
 		Printf(" %s", m_Extensions[i].GetChars());
 	}
 
-	int v;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &v);
 	Printf("\nMax. texture size: %d\n", v);
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &v);

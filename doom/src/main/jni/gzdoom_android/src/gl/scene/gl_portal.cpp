@@ -85,6 +85,7 @@ int GLPortal::MirrorFlag;
 int GLPortal::PlaneMirrorFlag;
 int GLPortal::renderdepth;
 int GLPortal::PlaneMirrorMode;
+GLuint GLPortal::QueryObject;
 
 int		 GLPortal::instack[2];
 bool	 GLPortal::inskybox;
@@ -179,7 +180,7 @@ void GLPortal::DrawPortalStencil()
 //
 //-----------------------------------------------------------------------------
 
-bool GLPortal::Start(bool usestencil)
+bool GLPortal::Start(bool usestencil, bool doquery)
 {
 	rendered_portals++;
 	PortalAll.Clock();
@@ -210,6 +211,7 @@ bool GLPortal::Start(bool usestencil)
 			glStencilFunc(GL_EQUAL,recursion+1,~0);		// draw sky into stencil
 			glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);		// this stage doesn't modify the stencil
 			glDepthMask(true);							// enable z-buffer again
+			glDepthRangef(1,1);
 			glDepthFunc(GL_ALWAYS);
 			DrawPortalStencil();
 
@@ -218,17 +220,7 @@ bool GLPortal::Start(bool usestencil)
 			glDepthFunc(GL_LESS);
 			glColorMask(1,1,1,1);
 			gl_RenderState.SetEffect(EFF_NONE);
-
-			GLuint sampleCount;
-
-			if (sampleCount==0) 	// not visible
-			{
-				// restore default stencil op.
-				glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
-				glStencilFunc(GL_EQUAL,recursion,~0);		// draw sky into stencil
-				PortalAll.Unclock();
-				return false;
-			}
+			glDepthRangef(0, 1);
 			FDrawInfo::StartDrawInfo();
 		}
 		else
@@ -266,6 +258,8 @@ bool GLPortal::Start(bool usestencil)
 	}
 	planestack.Push(gl_RenderState.GetClipHeightTop());
 	planestack.Push(gl_RenderState.GetClipHeightBottom());
+	glDisable(GL_CLIP_DISTANCE0);
+	glDisable(GL_CLIP_DISTANCE1);
 	gl_RenderState.SetClipHeightBottom(-65536.f);
 	gl_RenderState.SetClipHeightTop(65536.f);
 
@@ -331,8 +325,10 @@ void GLPortal::End(bool usestencil)
 	float f;
 	planestack.Pop(f);
 	gl_RenderState.SetClipHeightBottom(f);
+	if (f > -65535.f) glEnable(GL_CLIP_DISTANCE0);
 	planestack.Pop(f);
 	gl_RenderState.SetClipHeightTop(f);
+	if (f < 65535.f) glEnable(GL_CLIP_DISTANCE1);
 
 	if (usestencil)
 	{
@@ -356,6 +352,7 @@ void GLPortal::End(bool usestencil)
 		if (needdepth) 
 		{
 			// first step: reset the depth buffer to max. depth
+			glDepthRangef(1,1);							// always
 			glDepthFunc(GL_ALWAYS);						// write the farthest depth value
 			DrawPortalStencil();
 		}
@@ -366,6 +363,7 @@ void GLPortal::End(bool usestencil)
 		
 		// second step: restore the depth buffer to the previous values and reset the stencil
 		glDepthFunc(GL_LEQUAL);
+		glDepthRangef(0,1);
 		glStencilOp(GL_KEEP,GL_KEEP,GL_DECR);
 		glStencilFunc(GL_EQUAL,recursion,~0);		// draw sky into stencil
 		DrawPortalStencil();
@@ -407,6 +405,7 @@ void GLPortal::End(bool usestencil)
 
 		gl_RenderState.ResetColor();
 		glDepthFunc(GL_LEQUAL);
+		glDepthRangef(0,1);
 		glColorMask(0,0,0,0);						// no graphics
 		gl_RenderState.SetEffect(EFF_STENCIL);
 		gl_RenderState.EnableTexture(false);
@@ -469,15 +468,20 @@ void GLPortal::EndFrame()
 		indent += "  ";
 	}
 
+	// Only use occlusion query if there are more than 2 portals. 
+	// Otherwise there's too much overhead.
+	// (And don't forget to consider the separating NULL pointers!)
+	bool usequery = portals.Size() > 2 + (unsigned)renderdepth;
+
 	while (portals.Pop(p) && p)
 	{
 		if (gl_portalinfo) 
 		{
-			Printf("%sProcessing %s, depth = %d, query = %d\n", indent.GetChars(), p->GetName(), renderdepth);
+			Printf("%sProcessing %s, depth = %d, query = %d\n", indent.GetChars(), p->GetName(), renderdepth, usequery);
 		}
 		if (p->lines.Size() > 0)
 		{
-			p->RenderPortal(true);
+			p->RenderPortal(true, usequery);
 		}
 		delete p;
 	}
@@ -527,7 +531,7 @@ bool GLPortal::RenderFirstSkyPortal(int recursion)
 	if (best)
 	{
 		portals.Delete(bestindex);
-		best->RenderPortal(false);
+		best->RenderPortal(false, false);
 		delete best;
 		return true;
 	}
@@ -600,6 +604,9 @@ void GLSkyboxPortal::DrawContents()
 	extralight = 0;
 
 	PlaneMirrorMode=0;
+
+	glDisable(GL_DEPTH_CLAMP);
+
 	viewx = origin->PrevX + FixedMul(r_TicFrac, origin->x - origin->PrevX);
 	viewy = origin->PrevY + FixedMul(r_TicFrac, origin->y - origin->PrevY);
 	viewz = origin->PrevZ + FixedMul(r_TicFrac, origin->z - origin->PrevZ);
@@ -628,6 +635,7 @@ void GLSkyboxPortal::DrawContents()
 	GLRenderer->DrawScene();
 	origin->flags&=~MF_JUSTHIT;
 	inskybox=false;
+	glEnable(GL_DEPTH_CLAMP);
 	skyboxrecursion--;
 
 	PlaneMirrorMode=old_pm;
@@ -766,13 +774,17 @@ void GLPlaneMirrorPortal::DrawContents()
 	if (PlaneMirrorMode < 0)
 	{
 		gl_RenderState.SetClipHeightTop(f);	// ceiling mirror: clip everytihng with a z lower than the portal's ceiling
+		glEnable(GL_CLIP_DISTANCE1);
 	}
 	else
 	{
 		gl_RenderState.SetClipHeightBottom(f);	// floor mirror: clip everything with a z higher than the portal's floor
+		glEnable(GL_CLIP_DISTANCE0);
 	}
 
 	GLRenderer->DrawScene();
+	glDisable(GL_CLIP_DISTANCE0);
+	glDisable(GL_CLIP_DISTANCE1);
 	gl_RenderState.SetClipHeightBottom(-65536.f);
 	gl_RenderState.SetClipHeightTop(65536.f);
 	PlaneMirrorFlag--;
