@@ -41,6 +41,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/openal-soft-android/Alc/backends" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/openal-soft-android/OpenAL32" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/jpeg8d" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/GL" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/SDL/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/SDL/src/atomic" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/SDL/src/audio" isTestSource="false" />
@@ -175,7 +176,6 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javaPrecompile" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jniLibs" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/lint" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/ndkBuild" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/prebuild" />
@@ -187,14 +187,15 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/transforms" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
+      <excludeFolder url="file://$MODULE_DIR$/build/reports" />
       <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
-    <orderEntry type="jdk" jdkName="Android API 26 Platform" jdkType="Android SDK" />
+    <orderEntry type="jdk" jdkName="Android API 27 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="com.google.protobuf.nano:protobuf-javanano:3.1.0@jar" level="project" />
+    <orderEntry type="library" name="com.google.vr:sdk-base-1.80.0" level="project" />
     <orderEntry type="library" name="__local_aars__:/home/lubos/daydream/GZDoom-Android/doom/libs/fmod.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="com.google.vr:sdk-controller-1.100.0" level="project" />
-    <orderEntry type="library" name="com.google.vr:sdk-base-1.100.0" level="project" />
-    <orderEntry type="library" name="com.google.vr:sdk-common-1.100.0" level="project" />
+    <orderEntry type="library" name="com.google.vr:sdk-common-1.80.0" level="project" />
+    <orderEntry type="library" name="com.google.vr:sdk-controller-1.80.0" level="project" />
   </component>
 </module>

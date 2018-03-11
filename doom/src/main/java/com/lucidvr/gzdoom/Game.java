@@ -1,11 +1,10 @@
 package com.lucidvr.gzdoom;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.view.WindowManager;
 
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
+import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
 import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.base.Viewport;
@@ -18,7 +17,7 @@ import java.util.Iterator;
 
 import javax.microedition.khronos.egl.EGLConfig;
 
-public class Game extends Activity implements GvrView.StereoRenderer
+public class Game extends GvrActivity implements GvrView.StereoRenderer
 {
   static
   {
@@ -59,11 +58,13 @@ public class Game extends Activity implements GvrView.StereoRenderer
     //set GVR
     GvrView gvrView = new com.google.vr.sdk.base.GvrView(this);
     gvrView.setEGLConfigChooser(8, 8, 8, 8, 24, 8);
-    gvrView.setEGLContextClientVersion(3);
+    gvrView.setEGLContextClientVersion(1); //TODO:GLES2
     gvrView.setRenderer(this);
-    gvrView.setTransitionViewEnabled(true);
+    gvrView.setAsyncReprojectionEnabled(false);
+    gvrView.setDistortionCorrectionEnabled(false);
+    gvrView.setNeckModelEnabled(false);
+    gvrView.setTransitionViewEnabled(false);
     setContentView(gvrView);
-    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     AndroidCompat.setVrModeEnabled(this, true);
   }
@@ -129,37 +130,18 @@ public class Game extends Activity implements GvrView.StereoRenderer
   @Override
   public void onDrawEye(Eye eye)
   {
-    update(eye.getViewport());
+    Viewport viewport = eye.getViewport();
+    //TODO:move rendering here when it will be compatible with GLES2
   }
 
   @Override
   public void onFinishFrame(Viewport viewport)
   {
-    //update(viewport);
-  }
-
-  @Override
-  public void onSurfaceChanged(int width, int height)
-  {
-  }
-
-  @Override
-  public void onSurfaceCreated(EGLConfig eglConfig)
-  {
-  }
-
-  @Override
-  public void onRendererShutdown()
-  {
-  }
-
-  private void update(Viewport viewport)
-  {
     if (!doomInit)
     {
       //init doom
       SDLAudio.nativeInit(false);
-      args += "-width " + viewport.width + " -height " + viewport.height;
+      args += "-width " + (viewport.width / 2) + " -height " + viewport.height;
       ArrayList<String> a = new ArrayList<>(Arrays.asList(args.split(" ")));
       Iterator<String> iter = a.iterator();
       while (iter.hasNext())
@@ -193,5 +175,20 @@ public class Game extends Activity implements GvrView.StereoRenderer
       if (!loop())
         finish();
     }
+  }
+
+  @Override
+  public void onSurfaceChanged(int width, int height)
+  {
+  }
+
+  @Override
+  public void onSurfaceCreated(EGLConfig eglConfig)
+  {
+  }
+
+  @Override
+  public void onRendererShutdown()
+  {
   }
 }

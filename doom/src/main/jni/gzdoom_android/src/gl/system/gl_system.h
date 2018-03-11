@@ -40,6 +40,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
+//#include <direct.h>
 #include <stddef.h>
 #include <string.h>
 #include <ctype.h>
@@ -48,29 +49,59 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <signal.h>
+#if !defined(__APPLE__)
 #include <malloc.h>
+#endif
 #include <time.h>
 
+#ifdef _MSC_VER
+#define    F_OK    0    /* Check for file existence */
+#define    W_OK    2    /* Check for write permission */
+#define    R_OK    4    /* Check for read permission */
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
 //GL headers
-#include <GLES3/gl3.h>
-#include <GLES3/gl3ext.h>
+#if defined(__APPLE__)
+#include <GL/glew.h>
+#include <OpenGL/OpenGL.h>
+#elif defined(__ANDROID__)
+#include "gl.h"
+#include "glu.h"
+#include "glext.h"
+#include "qgl_linked.h"
+#elif defined(__unix__)
+#include <GL/glew.h>
+#include "gl/api/glext.h"
+#else // !__APPLE__ && !__unix__
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include "gl/api/glext.h"
+#endif
+#include "gl/api/gl_api.h"
 
-#define GL_CLIP_DISTANCE0 0x3000
-#define GL_CLIP_DISTANCE1 0x3001
-#define GL_DEPTH_CLAMP 0x864F
-
+#ifdef _WIN32
+#define DWORD WINDOWS_DWORD	// I don't want to depend on this throughout the GL code!
+#include "gl/api/wglext.h"
+#ifndef __WINE__
+#undef DWORD
+#endif
+#else
 typedef unsigned char 	byte;
 typedef float		FLOAT;
 template <typename T>
 inline T max( T a, T b) { return (((a)>(b)) ? (a) : (b)); }
 #define __cdecl
 #define _access(a,b)	access(a,b)
+#endif
+#ifndef _WIN32
 #include <SDL.h>
+#endif
 
 
 #ifdef LoadMenu
@@ -86,4 +117,17 @@ inline T max( T a, T b) { return (((a)>(b)) ? (a) : (b)); }
 #undef S_NORMAL
 #undef OPAQUE
 
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4244)     // MIPS
+#pragma warning(disable : 4136)     // X86
+#pragma warning(disable : 4051)     // ALPHA
+
+#pragma warning(disable : 4018)     // signed/unsigned mismatch
+#pragma warning(disable : 4305)     // truncate from double to float
+#endif
+
+#ifdef WIN32
+#undef WIN32
+#endif
 #endif //__GL_PCH_H
