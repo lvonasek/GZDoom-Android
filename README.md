@@ -4,8 +4,11 @@ A fork of D-Touch that aims to be the de facto port of GZDoom on Android.
 
 ## Lineage
 ZDoom is fork of original Doom to add some more functionality.
+
 GZDoom is fork of ZDoom to make it working with OpenGL
+
 GZDoom-Android is fork of GZDoom to make it working on Android
+
 and my fork of GZDoom-Android was just a modification to make it working in the virtual reality
 
 ## Building
