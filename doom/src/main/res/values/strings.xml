@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GzDoomVR</string>
+    <string name="unpacked">WAD unpacked, rerun GZDoomVR.</string>
+    <string name="unpacked_err">WAD was not unpacked.</string>
 </resources>
