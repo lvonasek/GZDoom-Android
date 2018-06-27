@@ -205,9 +205,9 @@
     <orderEntry type="jdk" jdkName="Android API 27 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Gradle: com.google.protobuf.nano:protobuf-javanano:3.1.0@jar" level="project" />
+    <orderEntry type="library" name="Gradle: com.google.vr:sdk-common-1.150.0" level="project" />
     <orderEntry type="library" name="Gradle: __local_aars__:/home/lubos/daydream/GZDoom-Android/doom/libs/fmod.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.vr:sdk-base-1.80.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.vr:sdk-common-1.80.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.vr:sdk-controller-1.80.0" level="project" />
+    <orderEntry type="library" name="Gradle: com.google.vr:sdk-base-1.150.0" level="project" />
+    <orderEntry type="library" name="Gradle: com.google.vr:sdk-controller-1.150.0" level="project" />
   </component>
 </module>

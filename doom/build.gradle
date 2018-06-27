@@ -22,6 +22,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.google.vr:sdk-base:1.80.0'
-    implementation 'com.google.vr:sdk-controller:1.80.0'
+    implementation 'com.google.vr:sdk-base:1.150.0'
+    implementation 'com.google.vr:sdk-controller:1.150.0'
 }
